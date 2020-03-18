@@ -8,7 +8,7 @@ use Mojo::Hakkefuin::Sessions;
 use Mojo::Util qw(dumper secure_compare);
 
 # ABSTRACT: The Minimalistic Mojolicious Authentication
-our $VERSION = '0.1';
+our $VERSION       = '0.1';
 our $VERSION_STATE = 'Beta';
 
 has mojo_hf => 'Mojo::Hakkefuin';
@@ -27,9 +27,9 @@ has use_cookies => 1;
 
 sub register {
   my ($self, $app, $conf) = @_;
-  
+
   # Helper for version
-  $self->helper(
+  $app->helper(
     version => sub {
       return {'num' => $VERSION, 'state' => $VERSION_STATE};
     }
