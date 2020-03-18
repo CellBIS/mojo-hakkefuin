@@ -1,20 +1,83 @@
 language: perl
+
 perl:
+  - "5.30"
+  - "5.28"
   - "5.26"
   - "5.24"
   - "5.22"
-  - "5.20"
-  - "5.18"
-  - "5.16"
-  - "5.14"
-  - "5.12"
-  - "5.10"
+
+matrix:
+  include:
+    - perl: "5.20"
+      dist: trusty
+      before_script:
+        - psql -U postgres -c 'create database msa_test'
+        - mysql -e 'create database msa_test;'
+      env:
+        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+    - perl: "5.18"
+      dist: trusty
+      before_script:
+        - psql -U postgres -c 'create database msa_test'
+        - mysql -e 'create database msa_test;'
+      env:
+        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+    - perl: "5.16"
+      dist: trusty
+      before_script:
+        - psql -U postgres -c 'create database msa_test'
+        - mysql -e 'create database msa_test;'
+      env:
+        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+    - perl: "5.14"
+      dist: trusty
+      before_script:
+        - psql -U postgres -c 'create database msa_test'
+        - mysql -e 'create database msa_test;'
+      env:
+        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+    - perl: "5.12"
+      dist: trusty
+      before_script:
+        - psql -U postgres -c 'create database msa_test'
+        - mysql -e 'create database msa_test;'
+      env:
+        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+    - perl: "5.10"
+      dist: trusty
+      before_script:
+        - psql -U postgres -c 'create database msa_test'
+        - mysql -e 'create database msa_test;'
+      env:
+        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+
 env:
   global:
     - HARNESS_OPTIONS=j9
+    - LC_ALL=C
+    - TEST_ONLINE_mariadb=mariadb://root:travis@/msa_test
+    - TEST_ONLINE_pg=postgresql://postgres@/msa_test
+
+before_script:
+  - psql -U postgres -c 'create database msa_test'
+  - sudo mysql -e "SET Password=PASSWORD('travis')"
+  - sudo mysql -e 'create database msa_test;'
+
+addons:
+  mariadb: 10.4
+  postgresql: 9.6
+
+services:
+  - postgresql
+
 install:
+  - cpanm -n Test::Pod Test::Pod::Coverage
+  - cpanm -n Devel::CheckLib DBI DBD::MariaDB Mojo::mysql Mojo::Pg
   - cpanm -n --installdeps .
-script: prove -lvr t
-sudo: false
+
+script:
+  - prove -lvr t
+
 notifications:
   email: false
