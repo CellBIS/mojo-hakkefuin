@@ -223,7 +223,7 @@ sub update {
 
   if ($self->check($app, $conf)) {
     my $csrf
-      = $conf->{'helper.prefix'} . ($csrf_reset ? '_csrfreset' : '_csrf_get');
+      = $conf->{'helper.prefix'} . ($csrf_reset ? '_csrf_regen' : '_csrf_get');
     $csrf = $app->$csrf();
 
     my $cookie_key = $conf->{'cookies'}->{name};
