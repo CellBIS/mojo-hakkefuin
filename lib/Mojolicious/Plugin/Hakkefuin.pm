@@ -21,9 +21,8 @@ has cookies => sub {
     random => 'String::Random'
   );
 };
-has random      => 'String::Random';
-has crand       => 'CellBIS::Random';
-has use_cookies => 1;
+has random => 'String::Random';
+has crand  => 'CellBIS::Random';
 
 sub register {
   my ($self, $app, $conf) = @_;
