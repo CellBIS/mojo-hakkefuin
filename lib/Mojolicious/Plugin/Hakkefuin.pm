@@ -10,7 +10,7 @@ use Mojo::Util qw(dumper secure_compare);
 # ABSTRACT: The Minimalistic Mojolicious Authentication
 our $VERSION = '0.1';
 
-has mojo_sa => 'Mojo::Hakkefuin';
+has mojo_hf => 'Mojo::Hakkefuin';
 has utils   => sub {
   state $utils = Mojo::Hakkefuin::Utils->new(random => 'String::Random');
 };
@@ -64,7 +64,7 @@ sub register {
   };
   $conf->{dir} = $home . '/' . $conf->{'dir'};
 
-  my $mhf = $self->mojo_sa->new(via => $conf->{via}, dir => $conf->{dir});
+  my $mhf = $self->mojo_hf->new(via => $conf->{via}, dir => $conf->{dir});
 
   # Check Database Migration
   $mhf->check_file_migration();
