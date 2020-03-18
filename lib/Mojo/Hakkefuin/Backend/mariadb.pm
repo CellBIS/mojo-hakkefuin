@@ -1,4 +1,4 @@
-package Mojo::Hakkefuin::Backend::mysql;
+package Mojo::Hakkefuin::Backend::mariadb;
 use Mojo::Base -base;
 
 use Carp 'croak';
