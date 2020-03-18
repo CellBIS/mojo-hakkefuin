@@ -44,24 +44,36 @@ sub register {
   $conf->{'via'}           //= 'sqlite';
   $conf->{'dir'}           //= 'migrations';
   $conf->{'csrf.name'}     //= 'mhf_csrf_token';
-  $conf->{'csrf.state'}    //= 'new';
+  $conf->{'lock'}          //= 1;
   $conf->{'s.time'}        //= '1w';
   $conf->{'c.time'}        //= '1w';
+  $conf->{'cl.time'}       //= '60m';
   $conf->{'callback'}      //= {
     'has_auth' => sub { },
     'sign_in'  => sub { },
-    'sign_out' => sub { }
+    'sign_out' => sub { },
+    'lock'     => sub { },
+    'unlock'   => sub { }
   };
 
   my $time_cookies = {
     session => $self->utils->time_convert($conf->{'s.time'}),
-    cookies => $self->utils->time_convert($conf->{'c.time'})
+    cookies => $self->utils->time_convert($conf->{'c.time'}),
+    lock    => $self->utils->time_convert($conf->{'cl.time'}),
   };
   $conf->{'cookies'} //= {
     name     => 'clg',
     path     => '/',
     httponly => 1,
     expires  => time + $time_cookies->{cookies},
+    max_age  => $time_cookies,
+    secure   => 0
+  };
+  $conf->{'cookies_lock'} //= {
+    name     => 'clglc',
+    path     => '/',
+    httponly => 1,
+    expires  => time + $time_cookies->{lock},
     max_age  => $time_cookies,
     secure   => 0
   };
