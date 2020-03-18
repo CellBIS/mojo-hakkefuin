@@ -1,3 +1,18 @@
-Revision history for perl distribution CellBIS-SimpleAuth
+Revision history for perl distribution Mojolicious::Plugin::Hakkefuin
 
 {{$NEXT}}
+
+
+0.1-beta    2020-03-19 05:39:00+08:00
+            - Use term MariaDB as instead of MySQL (yusrideb)
+            - Prepare module to support lock and unlock session #1 (yusrideb)
+            - Prepare unit tests for separate testing
+              between Mojolicious Lite and Mojolicious Full #3 (yusrideb)
+            - fix bugs from version 0.1-alpha (yusrideb)
+            - fix commit history #5 (RudyBodo)
+
+0.1-alpha   2019-06-18 06:18:00+08:00
+            - Login and Logout
+            - CSRF Protection
+            - Backend available for SQLite, MySQL, dan PostgreSQL
+            All authentication activities are saved to the database via Mojo::Hakkefuin::Backend Module.
