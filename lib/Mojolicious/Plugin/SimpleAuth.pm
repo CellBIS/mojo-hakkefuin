@@ -2,7 +2,7 @@ package Mojolicious::Plugin::SimpleAuth;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use CellBIS::Random;
-use Mojo::SimpleAuth;
+use Mojo::Hakkefuin;
 use Mojo::SimpleAuth::Utils;
 use Mojo::SimpleAuth::Sessions;
 use Mojo::Util qw(dumper secure_compare);
@@ -32,11 +32,11 @@ sub register {
 
   # Check Config
   $conf                    //= {};
-  $conf->{'helper.prefix'} //= 'msa';
-  $conf->{'stash.prefix'}  //= 'msa';
+  $conf->{'helper.prefix'} //= 'mhf';
+  $conf->{'stash.prefix'}  //= 'mhf';
   $conf->{'via'}           //= 'sqlite';
   $conf->{'dir'}           //= 'migrations';
-  $conf->{'csrf.name'}     //= 'msa_csrf_token';
+  $conf->{'csrf.name'}     //= 'mhf_csrf_token';
   $conf->{'csrf.state'}    //= 'new';
   $conf->{'s.time'}        //= '1w';
   $conf->{'c.time'}        //= '1w';
@@ -57,18 +57,18 @@ sub register {
     secure   => 0
   };
   $conf->{'session'} //= {
-    cookie_name        => '_msa',
+    cookie_name        => '_mhf',
     cookie_path        => '/',
     default_expiration => $time_session,
     secure             => 0
   };
   $conf->{dir} = $home . '/' . $conf->{'dir'};
 
-  my $msa = $self->mojo_sa->new(via => $conf->{via}, dir => $conf->{dir});
+  my $mhf = $self->mojo_sa->new(via => $conf->{via}, dir => $conf->{dir});
 
   # Check Database Migration
-  $msa->check_file_migration();
-  $msa->check_migration();
+  $mhf->check_file_migration();
+  $mhf->check_migration();
 
   # Helper Prefix
   my $pre = $conf->{'helper.prefix'};
@@ -81,23 +81,23 @@ sub register {
     }
   );
 
-  $app->helper($pre . '_signin' => sub { $self->_sign_in($conf, $msa, @_) });
-  $app->helper($pre . '_signout' => sub { $self->_sign_out($conf, $msa, @_) });
-  $app->helper($pre . '_has_auth' => sub { $self->_has_auth($conf, $msa, @_) });
+  $app->helper($pre . '_signin' => sub { $self->_sign_in($conf, $mhf, @_) });
+  $app->helper($pre . '_signout' => sub { $self->_sign_out($conf, $mhf, @_) });
+  $app->helper($pre . '_has_auth' => sub { $self->_has_auth($conf, $mhf, @_) });
   $app->helper(
-    $pre . '_auth_update' => sub { $self->_update_auth($conf, $msa, @_) });
+    $pre . '_auth_update' => sub { $self->_update_auth($conf, $mhf, @_) });
 
   $app->helper($pre . '_csrf' => sub { $self->_csrf($conf, @_) });
   $app->helper(
-    $pre . '_csrf_regen' => sub { $self->_csrfreset($conf, $msa, @_) });
+    $pre . '_csrf_regen' => sub { $self->_csrfreset($conf, $mhf, @_) });
   $app->helper($pre . '_csrf_get' => sub { $self->_csrf_get($conf, @_) });
   $app->helper($pre . '_csrf_val' => sub { $self->_csrf_val($conf, @_) });
 }
 
 sub _sign_in {
-  my ($self, $conf, $msa, $c, $idtfy) = @_;
+  my ($self, $conf, $mhf, $c, $idtfy) = @_;
 
-  my $backend = $msa->backend;
+  my $backend = $mhf->backend;
   my $cv = $self->cookies->create($conf, $c);
 
   return $backend->create($idtfy, $cv->[0], $cv->[1],
@@ -105,17 +105,17 @@ sub _sign_in {
 }
 
 sub _sign_out {
-  my ($self, $conf, $msa, $c, $identify) = @_;
+  my ($self, $conf, $mhf, $c, $identify) = @_;
 
   # Session Destroy :
   $c->session(expires => 1);
 
   my $cookie = $self->cookies->delete($conf, $c);
-  return $msa->backend->delete($identify, $cookie);
+  return $mhf->backend->delete($identify, $cookie);
 }
 
 sub _has_auth {
-  my ($self, $conf, $msa, $c) = @_;
+  my ($self, $conf, $mhf, $c) = @_;
 
   my $result   = {result => 0, code => 404, data => 'empty'};
   my $csrf_get = $conf->{'helper.prefix'} . '_csrf_get';
@@ -123,7 +123,7 @@ sub _has_auth {
 
   return $result unless $coo;
 
-  my $auth_check = $msa->backend->check(1, $coo);
+  my $auth_check = $mhf->backend->check(1, $coo);
 
   if ($auth_check->{result} == 1) {
     $result
@@ -139,12 +139,12 @@ sub _has_auth {
 }
 
 sub _update_auth {
-  my ($self, $conf, $msa, $c, $identify, $to_update) = @_;
+  my ($self, $conf, $mhf, $c, $identify, $to_update) = @_;
 
   # CSRF and cookies login update
   my $update;
   if ($to_update) {
-    $update = $self->_csrfreset($conf, $msa, $c) if $to_update eq 'csrf';
+    $update = $self->_csrfreset($conf, $mhf, $c) if $to_update eq 'csrf';
     $update = $self->cookies->update($conf, $c) if $to_update eq 'cookie';
   }
   else {
@@ -155,13 +155,13 @@ sub _update_auth {
   my $result = {result => 0};
   if (my ($cookie, $csrf) = @{$update}) {
     if ($to_update) {
-      $result = $msa->backend->update_cookie($identify, $cookie)
+      $result = $mhf->backend->update_cookie($identify, $cookie)
         if $to_update eq 'cookie';
-      $result = $msa->backend->update_csrf($identify, $csrf)
+      $result = $mhf->backend->update_csrf($identify, $csrf)
         if $to_update eq 'csrf';
     }
     else {
-      $result = $msa->backend->update($identify, $cookie, $csrf);
+      $result = $mhf->backend->update($identify, $cookie, $csrf);
     }
   }
   return $result;
@@ -181,12 +181,12 @@ sub _csrf {
 }
 
 sub _csrfreset {
-  my ($self, $conf, $msa, $c, $id) = @_;
+  my ($self, $conf, $mhf, $c, $id) = @_;
 
   my $coon = $self->utils->gen_cookie(3);
   my $csrf = $self->crand->new->random($coon, 2, 3);
 
-  my $result = $msa->backend->update_csrf($id, $csrf) if $id;
+  my $result = $mhf->backend->update_csrf($id, $csrf) if $id;
 
   $c->session($conf->{'csrf.name'} => $csrf);
   $c->res->headers->header('X-MSA-CSRF-Token' => $csrf);
@@ -304,7 +304,7 @@ Web Authentication. (Minimalistic and Powerful).
     'helper.prefix' => 'your_prefix_here'
   };
   
-To change prefix of all helpers. By default, C<helper.prefix> is C<msa_>.
+To change prefix of all helpers. By default, C<helper.prefix> is C<mhf_>.
 
 =head2 stash.prefix
 
@@ -318,7 +318,7 @@ To change prefix of all helpers. By default, C<helper.prefix> is C<msa_>.
     'stash.prefix' => 'your_stash_prefix_here'
   };
   
-To change prefix of stash. By default, C<stash.prefix> is C<msa_>.
+To change prefix of stash. By default, C<stash.prefix> is C<mhf_>.
 
 =head2 csrf.name
 
@@ -333,7 +333,7 @@ To change prefix of stash. By default, C<stash.prefix> is C<msa_>.
   };
   
 To change csrf name in session and HTTP Headers. By default, C<csrf.prefix>
-is C<msa_csrf_token>.
+is C<mhf_csrf_token>.
 
 =head2 via
 
@@ -400,37 +400,37 @@ see L<Mojo::SimpleAuth::Utils>.
 
 =head1 HELPERS
 
-By default, prefix for all helpers using C<msa_>, but you can do change that
+By default, prefix for all helpers using C<mhf_>, but you can do change that
 with option C<helper.prefix>.
 
-=head2 msa_signin
+=head2 mhf_signin
 
-  $c->msa_signin('login-identify') # In the controllers
+  $c->mhf_signin('login-identify') # In the controllers
   
 Helper for action sign-in (login) web application.
 
-=head2 msa_signout
+=head2 mhf_signout
 
-  $c->msa_signout('login-identify'); # In the controllers
+  $c->mhf_signout('login-identify'); # In the controllers
   
 Helper for action sign-out (logout) web application.
 
-=head2 msa_has_auth
+=head2 mhf_has_auth
 
-  $c->msa_has_auth; # In the controllers
+  $c->mhf_has_auth; # In the controllers
   
 Helper for checking if routes has authenticated.
 
-=head2 msa_csrf
+=head2 mhf_csrf
 
-  $c->msa_csrf; # In the controllers
-  <%= msa_csrf %> # In the template.
+  $c->mhf_csrf; # In the controllers
+  <%= mhf_csrf %> # In the template.
   
 Helper for generate csrf;
 
-=head2 msa_csrf_val
+=head2 mhf_csrf_val
 
-  $c->msa_csrf_val; # In the controllers
+  $c->mhf_csrf_val; # In the controllers
   
 Helper for validation that csrf from request routes.
 

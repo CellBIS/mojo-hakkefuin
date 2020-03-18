@@ -20,7 +20,7 @@ has status      => 'status';
 
 sub file_migration {
   my $self = shift;
-  return $self->dir . '/msa_mariadb.sql';
+  return $self->dir . '/mhf_mariadb.sql';
 }
 
 sub create_table {

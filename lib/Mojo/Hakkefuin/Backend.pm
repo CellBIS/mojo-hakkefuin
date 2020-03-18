@@ -6,7 +6,7 @@ use Mojo::Hakkefuin::Utils;
 
 has 'dir';
 has 'app';
-has msa_util => 'Mojo::Hakkefuin::Utils';
+has mhf_util => 'Mojo::Hakkefuin::Utils';
 
 # table structure
 has table_name  => 'mojo_simple_auth';
