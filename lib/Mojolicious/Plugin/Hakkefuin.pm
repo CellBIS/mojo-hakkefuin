@@ -21,6 +21,12 @@ has cookies => sub {
     random => 'String::Random'
   );
 };
+has cookies_lock => sub {
+  state $cookie = Mojolicious::Plugin::Hakkefuin::_cookiesLock->new(
+    utils  => shift->utils,
+    random => 'String::Random'
+  );
+};
 has random => 'String::Random';
 has crand  => 'CellBIS::Random';
 
@@ -286,6 +292,12 @@ sub check {
   my ($self, $app, $conf) = @_;
   return $app->cookie($conf->{'cookies'}->{name});
 }
+
+package Mojolicious::Plugin::Hakkefuin::_cookiesLock;
+use Mojo::Base -base;
+
+has 'random';
+has 'utils';
 
 1;
 
@@ -558,7 +570,7 @@ Achmad Yusri Afandi, C<yusrideb@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2019 by Achmad Yusri Afandi
+Copyright (C) 2020 by Achmad Yusri Afandi
 
 This program is free software, you can redistribute it and/or modify it
 under the terms of the Artistic License version 2.0.
