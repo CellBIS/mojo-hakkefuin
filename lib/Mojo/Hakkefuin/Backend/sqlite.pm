@@ -12,10 +12,10 @@ has abstract =>
 
 sub new {
   my $self = shift->SUPER::new(@_);
-  
+
   $self->file_migration($self->dir . '/mhf_sqlite.sql');
   $self->file_db('sqlite:' . $self->dir . '/mhf_sqlite.db');
-  
+
   $self->sqlite(Mojo::SQLite->new($self->file_db));
   return $self;
 }
@@ -24,7 +24,7 @@ sub check_table {
   my $self = shift;
 
   my $result = {result => 0, code => 400};
-  my $q = $self->abstract->select('sqlite_master', ['name'],
+  my $q      = $self->abstract->select('sqlite_master', ['name'],
     {where => 'type=\'table\' AND tbl_name=\'' . $self->table_name . '\''});
 
   if (my $dbh = $self->sqlite->db->query($q)) {
@@ -50,7 +50,7 @@ sub create_table {
 sub table_query {
   my $self = shift;
 
-  $self->abstract->new(db_type => 'sqlite')->create_table(
+  $self->abstract->create_table(
     $self->table_name,
     [
       $self->id,          $self->identify,    $self->cookie,
@@ -90,10 +90,8 @@ sub create {
       $self->create_date, $self->expire_date, $self->cookie_lock,
       $self->lock
     ],
-    [$identify, $cookie, $csrf, $now_time, $expire_time, $now_time, 0]
+    [$identify, $cookie, $csrf, $now_time, $expire_time, 'no_lock', 0]
   );
-
-  # warn $q;
   if (my $dbh = $self->sqlite->db->query($q)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
@@ -111,7 +109,7 @@ sub read {
     unless $self->check_table->{result};
 
   my $result = {result => 0, code => 400, data => $cookie};
-  my $q = $self->abstract->select(
+  my $q      = $self->abstract->select(
     $self->table_name,
     [],
     {
@@ -266,12 +264,40 @@ sub check {
       result => 1,
       code   => 200,
       data   => {
-        cookie   => $cookie,
-        id       => $r_data->{$self->id},
-        csrf     => $r_data->{$self->csrf},
-        identify => $r_data->{$self->identify}
+        cookie      => $cookie,
+        id          => $r_data->{$self->id},
+        csrf        => $r_data->{$self->csrf},
+        identify    => $r_data->{$self->identify},
+        cookie_lock => $r_data->{$self->cookie_lock},
+        lock        => $r_data->{$self->lock}
       }
     };
+  }
+  return $result;
+}
+
+sub empty_table {
+  my $self   = shift;
+  my $result = {result => 0, code => 500, data => 'can\'t delete table'};
+
+  if (my $dbh = $self->sqlite->db->query('DELETE FROM ' . $self->table_name)) {
+    $result->{result} = $dbh->rows;
+    $result->{code}   = 200;
+    $result->{data}   = '';
+  }
+  return $result;
+}
+
+sub drop_table {
+  my $self   = shift;
+  my $result = {result => 0, code => 500, data => 'can\'t drop table'};
+
+  if (my $dbh
+    = $self->sqlite->db->query('DROP TABLE IF EXISTS ' . $self->table_name))
+  {
+    $result->{result} = $dbh->rows;
+    $result->{code}   = 200;
+    $result->{data}   = '';
   }
   return $result;
 }
