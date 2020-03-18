@@ -273,17 +273,29 @@ Mojolicious::Plugin::Hakkefuin - Mojolicious Web Authentication.
   plugin 'Hakkefuin' => {
     'helper.prefix' => 'your_prefix_here_',
     'stash.prefix' => 'your_stash_prefix_here',
-    via => 'mysql',
+    'csrf.name' => 'your_csrf_name_here',
+    via => 'mariadb',
     dir => 'your-dir-location-file-db'
+    'c.time' => '1w',
+    's.time' => '1w',
+    'csrf.name' => 'mhf_csrf_token',
+    'lock' => 1,
+    'cl.time' => '60m'
   };
 
   # Mojolicious
   $self->plugin('Hakkefuin' => {
-    'helper.prefix' => 'your_prefix_here',
+    'helper.prefix' => 'your_prefix_here_',
     'stash.prefix' => 'your_stash_prefix_here',
-    via => 'mysql',
-    dir => 'your-dir-config-auth'
-  }); # With Options
+    'csrf.name' => 'your_csrf_name_here',
+    via => 'mariadb',
+    dir => 'your-dir-location-file-db'
+    'c.time' => '1w',
+    's.time' => '1w',
+    'csrf.name' => 'mhf_csrf_token',
+    'lock' => 1,
+    'cl.time' => '60m'
+  });
   
 =head1 DESCRIPTION
 
@@ -339,17 +351,17 @@ is C<mhf_csrf_token>.
 
   # Mojolicious
   $self->plugin('Hakkefuin' => {
-    via => 'mysql', # OR
+    via => 'mariadb', # OR
     via => 'pg'
   });
 
   # Mojolicious Lite
   plugin 'Hakkefuin' => {
-    via => 'mysql', # OR
+    via => 'mariadb', # OR
     via => 'pg'
   };
   
-Use one of C<'mysql'> or C<'pg'> or C<'sqlite'>. (For C<'sqlite'> option
+Use one of C<'mariadb'> or C<'pg'> or C<'sqlite'>. (For C<'sqlite'> option
 does not need to be specified, as it would by default be using C<'sqlite'>
 if option C<via> is not specified).
 
@@ -379,8 +391,7 @@ Specified directory for L<Mojolicious::Plugin::Hakkefuin> configure files.
     'c.time' => '1w'
   };
   
-Specified cookie expires time. By default is 1 week.
-
+To set a cookie expires time. By default is 1 week.
 
 =head2 s.time
 
@@ -394,14 +405,71 @@ Specified cookie expires time. By default is 1 week.
     's.time' => '1w'
   };
   
-Specified cookie session expires time. By default is 1 week. For an explanation
-of the time abbreviation for C<c.time> and C<s.time> helper,
+To set a cookie session expires time. By default is 1 week. For more
+information of the abbreviation for time C<c.time> and C<s.time> helper,
 see L<Mojo::Hakkefuin::Utils>.
+
+=head2 csrf.name
+
+  # Mojolicious
+  $self->plugin('Hakkefuin' => {
+    'csrf.name' => 'mhf_csrf_token'
+  });
+
+  # Mojolicious Lite
+  plugin 'Hakkefuin' => {
+    'csrf.name' => 'mhf_csrf_token'
+  };
+
+To set a cookie session expires time. By default is C<mhf_csrf_token>.
+
+=head2 lock
+
+  # Mojolicious
+  $self->plugin('Hakkefuin' => {
+    'lock' => 1
+  });
+
+  # Mojolicious Lite
+  plugin 'Hakkefuin' => {
+    'lock' => 1
+  };
+
+To set C<Lock Screen> feature. By default is 1 (enable). If you won't use
+that feature, you can give 0 (disable). This feature is additional
+authentication method, beside C<login> and C<logout>,
+that look like C<Lock Screen> in mobile phone.
+
+=head2 cl.time
+
+  # Mojolicious
+  $self->plugin('Hakkefuin' => {
+    'cl.time' => '60m'
+  });
+
+  # Mojolicious Lite
+  plugin 'Hakkefuin' => {
+    'cl.time' => '60m'
+  };
+
+To set cookie lock expires time. By default is 60 minutes.
 
 =head1 HELPERS
 
 By default, prefix for all helpers using C<mhf_>, but you can do change that
 with option C<helper.prefix>.
+
+=head2 mhf_lock
+
+  $c->mhf_lock() # In the controllers
+  
+Helper for action sign-in (login) web application.
+
+=head2 mhf_unlock
+
+  $c->mhf_unlock(); # In the controllers
+  
+Helper for action sign-out (logout) web application.
 
 =head2 mhf_signin
 
@@ -434,6 +502,12 @@ Helper for generate csrf;
   
 Helper for validation that csrf from request routes.
 
+=head2 mhf_backend
+
+  $c->mhf_backend; # In the controllers
+  
+Helper for access to backend.
+
 =head1 METHODS
 
 L<Mojolicious::Plugin::Hakkefuin> inherits all methods from
@@ -447,7 +521,7 @@ Register plugin in L<Mojolicious> application.
 
 =head1 SEE ALSO
 
-L<https://github.com/CellBIS/Mojolicious-Plugin-Hakkefuin>,
+L<https://github.com/CellBIS/mojo-hakkefuin>,
 <Mojolicious::Guides>, L<https://mojolicious.org>.
 
 =head1 AUTHOR
@@ -456,7 +530,7 @@ Achmad Yusri Afandi, C<yusrideb@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2018 by Achmad Yusri Afandi
+Copyright (C) 2019 by Achmad Yusri Afandi
 
 This program is free software, you can redistribute it and/or modify it
 under the terms of the Artistic License version 2.0.
