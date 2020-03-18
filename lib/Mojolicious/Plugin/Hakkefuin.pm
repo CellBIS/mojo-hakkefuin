@@ -53,25 +53,27 @@ sub register {
     'sign_out' => sub { }
   };
 
-  my $time_session = $self->utils->time_convert($conf->{'s.time'});
-  my $time_cookies = $self->utils->time_convert($conf->{'c.time'});
+  my $time_cookies = {
+    session => $self->utils->time_convert($conf->{'s.time'}),
+    cookies => $self->utils->time_convert($conf->{'c.time'})
+  };
   $conf->{'cookies'} //= {
     name     => 'clg',
     path     => '/',
     httponly => 1,
-    expires  => time + $time_cookies,
+    expires  => time + $time_cookies->{cookies},
     max_age  => $time_cookies,
     secure   => 0
   };
   $conf->{'session'} //= {
     cookie_name        => '_mhf',
     cookie_path        => '/',
-    default_expiration => $time_session,
+    default_expiration => $time_cookies->{session},
     secure             => 0
   };
   $conf->{dir} = $home . '/' . $conf->{'dir'};
 
-  # Build mojo-hakkefuin Params
+  # Build Mojo::Hakkefuin Params
   my @mhf_params
     = $conf->{table_config} && $conf->{migration}
     ? (table_config => $conf->{table_config}, migration => $conf->{migration})
