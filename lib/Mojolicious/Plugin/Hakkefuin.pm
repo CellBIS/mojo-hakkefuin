@@ -63,7 +63,7 @@ sub register {
     secure             => 0
   };
   $conf->{dir} = $home . '/' . $conf->{'dir'};
-  
+
   # Build mojo-hakkefuin Params
   my @mhf_params
     = $conf->{table_config} && $conf->{migration}
@@ -89,11 +89,11 @@ sub register {
     }
   );
 
-  $app->helper($pre . '_signin' => sub { $self->_sign_in($conf, $mhf, @_) });
+  $app->helper($pre . '_signin'  => sub { $self->_sign_in($conf, $mhf, @_) });
   $app->helper($pre . '_signout' => sub { $self->_sign_out($conf, $mhf, @_) });
   $app->helper($pre . '_has_auth' => sub { $self->_has_auth($conf, $mhf, @_) });
   $app->helper(
-    $pre . '_auth_update' => sub { $self->_update_auth($conf, $mhf, @_) });
+    $pre . '_auth_update' => sub { $self->_auth_update($conf, $mhf, @_) });
 
   $app->helper($pre . '_csrf' => sub { $self->_csrf($conf, @_) });
   $app->helper(
@@ -107,7 +107,7 @@ sub _sign_in {
   my ($self, $conf, $mhf, $c, $idtfy) = @_;
 
   my $backend = $mhf->backend;
-  my $cv = $self->cookies->create($conf, $c);
+  my $cv      = $self->cookies->create($conf, $c);
 
   return $backend->create($idtfy, $cv->[0], $cv->[1],
     $self->utils->time_convert($conf->{'c.time'}));
@@ -147,32 +147,14 @@ sub _has_auth {
   return $result;
 }
 
-sub _update_auth {
-  my ($self, $conf, $mhf, $c, $identify, $to_update) = @_;
+sub _auth_update {
+  my ($self, $conf, $mhf, $c, $identify) = @_;
 
-  # CSRF and cookies login update
-  my $update;
-  if ($to_update) {
-    $update = $self->_csrfreset($conf, $mhf, $c) if $to_update eq 'csrf';
-    $update = $self->cookies->update($conf, $c) if $to_update eq 'cookie';
-  }
-  else {
-    $update = $self->cookies->update($conf, $c, 1);
-  }
-
-  # Update to db
   my $result = {result => 0};
-  if (my ($cookie, $csrf) = @{$update}) {
-    if ($to_update) {
-      $result = $mhf->backend->update_cookie($identify, $cookie)
-        if $to_update eq 'cookie';
-      $result = $mhf->backend->update_csrf($identify, $csrf)
-        if $to_update eq 'csrf';
-    }
-    else {
-      $result = $mhf->backend->update($identify, $cookie, $csrf);
-    }
-  }
+  my $update = $self->cookies->update($conf, $c, 1);
+  my $csrf   = ref $update->[1] eq 'ARRAY' ? $update->[1]->[1] : $update->[1];
+  $result = $mhf->backend->update($identify, $update->[0], $csrf);
+
   return $result;
 }
 
