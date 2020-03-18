@@ -1,4 +1,4 @@
-package Mojo::SimpleAuth::Backend::mysql;
+package Mojo::Hakkefuin::Backend::mysql;
 use Mojo::Base -base;
 
 use Carp 'croak';

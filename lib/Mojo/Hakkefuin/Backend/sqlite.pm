@@ -1,5 +1,5 @@
-package Mojo::SimpleAuth::Backend::sqlite;
-use Mojo::Base 'Mojo::SimpleAuth::Backend';
+package Mojo::Hakkefuin::Backend::sqlite;
+use Mojo::Base 'Mojo::Hakkefuin::Backend';
 
 use Mojo::SQLite;
 use CellBIS::SQL::Abstract;
