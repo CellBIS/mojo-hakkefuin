@@ -13,7 +13,9 @@ use CellBIS::SQL::Abstract;
 # Attributes
 has random => sub { String::Random->new };
 has 'via';
+has 'dsn';
 has 'dir';
+has 'migration';
 has 'table_config';    # not yet implemented.
 
 # Internal Attributes
@@ -22,7 +24,7 @@ has 'migration_status' => 0;
 
 sub check_file_migration {
   my $self = shift;
-
+  
   my $backend        = $self->backend;
   my $file_migration = $backend->file_migration();
   unless (-d $self->dir) { mkdir $self->dir }
@@ -35,7 +37,7 @@ sub check_file_migration {
 
 sub check_migration {
   my $self = shift;
-
+  
   my $backend = $self->backend;
   my $check   = $backend->check_table();
   unless ($check->{result}) {
@@ -47,27 +49,28 @@ sub check_migration {
 
 sub new {
   my $self = shift->SUPER::new(@_);
-
+  
   $self->{via} //= 'sqlite';
-
-  # Build params for backend
+  
+  # Params for backend
   my @param
     = $self->table_config
     ? (dir => $self->dir, %{$self->table_config})
     : (dir => $self->dir);
-
+  push @param, dsn => $self->dsn if $self->dsn;
+  
   # Load class backend
   my $class = 'Mojo::Hakkefuin::Backend::' . $self->via;
   my $load  = load_class $class;
   croak ref $load ? $load : qq{Backend "$class" missing} if $load;
   $self->backend($class->new(@param));
-
+  
   return $self;
 }
 
 sub _check_migration_file {
   my $self = shift;
-
+  
   my $loc_file = $self->dir . $self->backend()->file_migration;
   if (-f $loc_file) {
     return $self unless $self->backend()->table()->{result};
@@ -94,9 +97,9 @@ Mojo::Hakkefuin - Abstraction for L<Mojolicious::Plugin::Hakkefuin>
   # SQLite as backend
   my $mhf = Mojo::Hakkefuin->new({ dir => 'migrations' });
   
-  # MySQL as backend
+  # MariaDB/MySQL as backend
   my $mhf = Mojo::Hakkefuin->new({
-    via => 'mysql',
+    via => 'mariadb',
     dir => 'migrations'
   });
   
@@ -119,7 +122,7 @@ L<Mojo::Base> and implements the following new ones.
 =head2 via
 
   $mhf->via;
-  $mhf->via('mysql');
+  $mhf->via('mariadb');
   $mhf->via('sqlite');
   $mhf->via('pg');
   
