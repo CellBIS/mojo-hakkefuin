@@ -1,21 +1,21 @@
-package Mojolicious::Plugin::SimpleAuth;
+package Mojolicious::Plugin::Hakkefuin;
 use Mojo::Base 'Mojolicious::Plugin';
 
 use CellBIS::Random;
 use Mojo::Hakkefuin;
-use Mojo::SimpleAuth::Utils;
-use Mojo::SimpleAuth::Sessions;
+use Mojo::Hakkefuin::Utils;
+use Mojo::Hakkefuin::Sessions;
 use Mojo::Util qw(dumper secure_compare);
 
 # ABSTRACT: The Minimalistic Mojolicious Authentication
 our $VERSION = '0.1';
 
-has mojo_sa => 'Mojo::SimpleAuth';
+has mojo_sa => 'Mojo::Hakkefuin';
 has utils   => sub {
-  state $utils = Mojo::SimpleAuth::Utils->new(random => 'String::Random');
+  state $utils = Mojo::Hakkefuin::Utils->new(random => 'String::Random');
 };
 has cookies => sub {
-  state $cookies = Mojolicious::Plugin::SimpleAuth::_cookies->new(
+  state $cookies = Mojolicious::Plugin::Hakkefuin::_cookies->new(
     utils  => shift->utils,
     random => 'String::Random'
   );
@@ -76,7 +76,7 @@ sub register {
   $app->hook(
     after_build_tx => sub {
       my ($tx, $c) = @_;
-      $c->sessions(Mojo::SimpleAuth::Sessions->new(%{$conf->{session}}));
+      $c->sessions(Mojo::Hakkefuin::Sessions->new(%{$conf->{session}}));
       $c->sessions->max_age(1) if $c->sessions->can('max_age');
     }
   );
@@ -207,7 +207,7 @@ sub _csrf_val {
   return $csrf_header if $csrf_header eq $get_csrf;
 }
 
-package Mojolicious::Plugin::SimpleAuth::_cookies;
+package Mojolicious::Plugin::Hakkefuin::_cookies;
 use Mojo::Base -base;
 
 has 'random';
@@ -265,12 +265,12 @@ sub check {
 
 =head1 NAME
 
-Mojolicious::Plugin::SimpleAuth - Mojolicious Web Authentication.
+Mojolicious::Plugin::Hakkefuin - Mojolicious Web Authentication.
 
 =head1 SYNOPSIS
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     'helper.prefix' => 'your_prefix_here_',
     'stash.prefix' => 'your_stash_prefix_here',
     via => 'mysql',
@@ -278,7 +278,7 @@ Mojolicious::Plugin::SimpleAuth - Mojolicious Web Authentication.
   };
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     'helper.prefix' => 'your_prefix_here',
     'stash.prefix' => 'your_stash_prefix_here',
     via => 'mysql',
@@ -287,7 +287,7 @@ Mojolicious::Plugin::SimpleAuth - Mojolicious Web Authentication.
   
 =head1 DESCRIPTION
 
-L<Mojolicious::Plugin::SimpleAuth> is a L<Mojolicious> plugin for
+L<Mojolicious::Plugin::Hakkefuin> is a L<Mojolicious> plugin for
 Web Authentication. (Minimalistic and Powerful).
 
 =head1 OPTIONS
@@ -295,12 +295,12 @@ Web Authentication. (Minimalistic and Powerful).
 =head2 helper.prefix
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     'helper.prefix' => 'your_prefix_here'
   });
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     'helper.prefix' => 'your_prefix_here'
   };
   
@@ -309,12 +309,12 @@ To change prefix of all helpers. By default, C<helper.prefix> is C<mhf_>.
 =head2 stash.prefix
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     'stash.prefix' => 'your_stash_prefix_here'
   });
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     'stash.prefix' => 'your_stash_prefix_here'
   };
   
@@ -323,12 +323,12 @@ To change prefix of stash. By default, C<stash.prefix> is C<mhf_>.
 =head2 csrf.name
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     'csrf.name' => 'your_csrf_name_here'
   });
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     'csrf.name' => 'your_csrf_name_here'
   };
   
@@ -338,13 +338,13 @@ is C<mhf_csrf_token>.
 =head2 via
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     via => 'mysql', # OR
     via => 'pg'
   });
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     via => 'mysql', # OR
     via => 'pg'
   };
@@ -356,26 +356,26 @@ if option C<via> is not specified).
 =head2 dir
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     dir => 'your-custon-dirname-here'
   });
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     dir => 'your-custon-dirname-here'
   };
   
-Specified directory for L<Mojolicious::Plugin::SimpleAuth> configure files.
+Specified directory for L<Mojolicious::Plugin::Hakkefuin> configure files.
 
 =head2 c.time
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     'c.time' => '1w'
   });
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     'c.time' => '1w'
   };
   
@@ -385,18 +385,18 @@ Specified cookie expires time. By default is 1 week.
 =head2 s.time
 
   # Mojolicious
-  $self->plugin('SimpleAuth' => {
+  $self->plugin('Hakkefuin' => {
     's.time' => '1w'
   });
 
   # Mojolicious Lite
-  plugin 'SimpleAuth' => {
+  plugin 'Hakkefuin' => {
     's.time' => '1w'
   };
   
 Specified cookie session expires time. By default is 1 week. For an explanation
 of the time abbreviation for C<c.time> and C<s.time> helper,
-see L<Mojo::SimpleAuth::Utils>.
+see L<Mojo::Hakkefuin::Utils>.
 
 =head1 HELPERS
 
@@ -436,7 +436,7 @@ Helper for validation that csrf from request routes.
 
 =head1 METHODS
 
-L<Mojolicious::Plugin::SimpleAuth> inherits all methods from
+L<Mojolicious::Plugin::Hakkefuin> inherits all methods from
 L<Mojolicious::Plugin> and implements the following new ones.
 
 =head2 register
@@ -447,7 +447,7 @@ Register plugin in L<Mojolicious> application.
 
 =head1 SEE ALSO
 
-L<https://github.com/CellBIS/Mojolicious-Plugin-SimpleAuth>,
+L<https://github.com/CellBIS/Mojolicious-Plugin-Hakkefuin>,
 <Mojolicious::Guides>, L<https://mojolicious.org>.
 
 =head1 AUTHOR
