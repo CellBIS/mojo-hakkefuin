@@ -9,6 +9,7 @@ use Mojo::Util qw(dumper secure_compare);
 
 # ABSTRACT: The Minimalistic Mojolicious Authentication
 our $VERSION = '0.1';
+our $VERSION_STATE = 'Beta';
 
 has mojo_hf => 'Mojo::Hakkefuin';
 has utils   => sub {
@@ -26,6 +27,13 @@ has use_cookies => 1;
 
 sub register {
   my ($self, $app, $conf) = @_;
+  
+  # Helper for version
+  $self->helper(
+    version => sub {
+      return {'num' => $VERSION, 'state' => $VERSION_STATE};
+    }
+  );
 
   # Home Dir
   my $home = $app->home->detect;
