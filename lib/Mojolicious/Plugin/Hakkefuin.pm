@@ -63,8 +63,16 @@ sub register {
     secure             => 0
   };
   $conf->{dir} = $home . '/' . $conf->{'dir'};
-
-  my $mhf = $self->mojo_hf->new(via => $conf->{via}, dir => $conf->{dir});
+  
+  # Build mojo-hakkefuin Params
+  my @mhf_params
+    = $conf->{table_config} && $conf->{migration}
+    ? (table_config => $conf->{table_config}, migration => $conf->{migration})
+    : (via => $conf->{via}, dir => $conf->{dir});
+  push @mhf_params, dir => $conf->{dir};
+  push @mhf_params, via => $conf->{via};
+  push @mhf_params, dsn => $conf->{dsn} if $conf->{dsn};
+  my $mhf = $self->mojo_hf->new(@mhf_params);
 
   # Check Database Migration
   $mhf->check_file_migration();
@@ -92,6 +100,7 @@ sub register {
     $pre . '_csrf_regen' => sub { $self->_csrfreset($conf, $mhf, @_) });
   $app->helper($pre . '_csrf_get' => sub { $self->_csrf_get($conf, @_) });
   $app->helper($pre . '_csrf_val' => sub { $self->_csrf_val($conf, @_) });
+  $app->helper(mhf_backend => sub { $mhf->backend });
 }
 
 sub _sign_in {
