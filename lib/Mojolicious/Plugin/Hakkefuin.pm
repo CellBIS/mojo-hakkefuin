@@ -176,7 +176,7 @@ sub _csrf {
     my $csrf = $self->crand->new->random($cook, 2, 3);
 
     $c->session($conf->{'csrf.name'} => $csrf);
-    $c->res->headers->append('X-MSA-CSRF-Token' => $csrf);
+    $c->res->headers->append((uc $conf->{'csrf.name'}) => $csrf);
   }
 }
 
@@ -189,21 +189,21 @@ sub _csrfreset {
   my $result = $mhf->backend->update_csrf($id, $csrf) if $id;
 
   $c->session($conf->{'csrf.name'} => $csrf);
-  $c->res->headers->header('X-MSA-CSRF-Token' => $csrf);
+  $c->res->headers->header((uc $conf->{'csrf.name'}) => $csrf);
   return [$result, $csrf];
 }
 
 sub _csrf_get {
-  my ($plugin, $conf, $c) = @_;
+  my ($self, $conf, $c) = @_;
   return $c->session($conf->{'csrf.name'})
-    || $c->req->headers->header('X-MSA-CSRF-Token');
+    || $c->req->headers->header((uc $conf->{'csrf.name'}));
 }
 
 sub _csrf_val {
-  my ($plugin, $conf, $c) = @_;
+  my ($self, $conf, $c) = @_;
 
   my $get_csrf    = $c->session($conf->{'csrf.name'});
-  my $csrf_header = $c->res->headers->header('X-MSA-CSRF-Token');
+  my $csrf_header = $c->res->headers->header((uc $conf->{'csrf.name'}));
   return $csrf_header if $csrf_header eq $get_csrf;
 }
 
