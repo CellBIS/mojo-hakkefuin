@@ -110,6 +110,8 @@ sub register {
     }
   );
 
+  $app->helper($pre . '_lock'   => sub { $self->_lock($conf, $mhf, @_) });
+  $app->helper($pre . '_unlock' => sub { $self->_unlock($conf, $mhf, @_) });
   $app->helper($pre . '_signin'  => sub { $self->_sign_in($conf, $mhf, @_) });
   $app->helper($pre . '_signout' => sub { $self->_sign_out($conf, $mhf, @_) });
   $app->helper($pre . '_has_auth' => sub { $self->_has_auth($conf, $mhf, @_) });
@@ -122,6 +124,20 @@ sub register {
   $app->helper($pre . '_csrf_get' => sub { $self->_csrf_get($conf, @_) });
   $app->helper($pre . '_csrf_val' => sub { $self->_csrf_val($conf, @_) });
   $app->helper(mhf_backend => sub { $mhf->backend });
+}
+
+sub _lock {
+  my ($self, $conf, $mhf, $c, $identify) = @_;
+
+  my $check_auth = $self->_has_auth($conf, $mhf, $c);
+  if ($check_auth->{result} == 1) { }
+}
+
+sub _unlock {
+  my ($self, $conf, $mhf, $c, $identify) = @_;
+
+  my $check_auth = $self->_has_auth($conf, $mhf, $c);
+  if ($check_auth->{result} == 2) { }
 }
 
 sub _sign_in {
