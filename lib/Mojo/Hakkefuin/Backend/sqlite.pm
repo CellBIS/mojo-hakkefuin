@@ -143,13 +143,11 @@ sub update {
     $self->table_name,
     {$self->cookie, => $cookie, $self->csrf => $csrf},
     {
-          where => '('
+          where => ''
         . $self->id
-        . " = '$id' OR "
-        . $self->identify
-        . " = '$id') AND "
+        . " = $id AND "
         . $self->expire_date
-        . " > '$now_time'"
+        . " >= '$now_time'"
     }
   );
   if (my $dbh = $self->sqlite->db->query($q)) {
@@ -178,7 +176,7 @@ sub update_csrf {
           where => $self->id
         . " = '$id' AND "
         . $self->expire_date
-        . " > '$now_time'"
+        . " >= '$now_time'"
     }
   );
   if (my $dbh = $self->sqlite->db->query($q)) {
@@ -207,7 +205,7 @@ sub update_cookie {
           where => $self->id
         . " = '$id' AND "
         . $self->expire_date
-        . " > '$now_time'"
+        . " >= '$now_time'"
     }
   );
   if (my $dbh = $self->sqlite->db->query($q)) {

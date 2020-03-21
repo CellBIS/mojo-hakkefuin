@@ -142,13 +142,11 @@ sub update {
     $self->table_name,
     {$self->cookie, => $cookie, $self->csrf => $csrf},
     {
-          where => '('
+          where => ''
         . $self->id
-        . " = '$id' OR "
-        . $self->identify
-        . " = '$id') AND "
+        . " = '$id' AND "
         . $self->expire_date
-        . " > '$now_time'"
+        . " >= '$now_time'"
     }
   );
   if (my $dbh = $self->pg->db->query($q)) {
@@ -175,9 +173,9 @@ sub update_csrf {
     {$self->csrf => $csrf},
     {
           where => $self->id
-        . " = '$id' AND "
+        . " = $id AND "
         . $self->expire_date
-        . " > '$now_time'"
+        . " >= '$now_time'"
     }
   );
   if (my $dbh = $self->pg->db->query($q)) {
@@ -204,9 +202,9 @@ sub update_cookie {
     {$self->cookie => $cookie},
     {
           where => $self->id
-        . " = '$id' AND "
+        . " = $id AND "
         . $self->expire_date
-        . " > '$now_time'"
+        . " >= '$now_time'"
     }
   );
   if (my $dbh = $self->pg->db->query($q)) {
