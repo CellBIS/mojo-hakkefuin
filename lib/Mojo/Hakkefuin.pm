@@ -51,6 +51,7 @@ sub new {
   my $self = shift->SUPER::new(@_);
   
   $self->{via} //= 'sqlite';
+  $self->via('mariadb') if $self->via eq 'mysql';
   
   # Params for backend
   my @param
@@ -142,13 +143,13 @@ This attribute by default contains C<migrations>.
 L<Mojo::Hakkefuin> inherits all methods from
 L<Mojo::Base> and implements the following new ones.
 
-=head2 check_file_migration()
+=head2 check_file_migration
 
   $mhf->check_file_migration();
   
 Checking file migration on your application directory.
 
-=head2 check_migration()
+=head2 check_migration
 
   $mhf->check_migration();
   
