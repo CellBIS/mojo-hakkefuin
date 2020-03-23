@@ -12,57 +12,57 @@ matrix:
     - perl: "5.20"
       dist: trusty
       before_script:
-        - psql -U postgres -c 'create database msa_test'
-        - mysql -e 'create database msa_test;'
+        - psql -U postgres -c 'create database mhf_test'
+        - mysql -e 'create database mhf_test;'
       env:
-        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
     - perl: "5.18"
       dist: trusty
       before_script:
-        - psql -U postgres -c 'create database msa_test'
-        - mysql -e 'create database msa_test;'
+        - psql -U postgres -c 'create database mhf_test'
+        - mysql -e 'create database mhf_test;'
       env:
-        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
     - perl: "5.16"
       dist: trusty
       before_script:
-        - psql -U postgres -c 'create database msa_test'
-        - mysql -e 'create database msa_test;'
+        - psql -U postgres -c 'create database mhf_test'
+        - mysql -e 'create database mhf_test;'
       env:
-        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
     - perl: "5.14"
       dist: trusty
       before_script:
-        - psql -U postgres -c 'create database msa_test'
-        - mysql -e 'create database msa_test;'
+        - psql -U postgres -c 'create database mhf_test'
+        - mysql -e 'create database mhf_test;'
       env:
-        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
     - perl: "5.12"
       dist: trusty
       before_script:
-        - psql -U postgres -c 'create database msa_test'
-        - mysql -e 'create database msa_test;'
+        - psql -U postgres -c 'create database mhf_test'
+        - mysql -e 'create database mhf_test;'
       env:
-        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
     - perl: "5.10"
       dist: trusty
       before_script:
-        - psql -U postgres -c 'create database msa_test'
-        - mysql -e 'create database msa_test;'
+        - psql -U postgres -c 'create database mhf_test'
+        - mysql -e 'create database mhf_test;'
       env:
-        - TEST_ONLINE_mariadb=mariadb://root@/msa_test
+        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
 
 env:
   global:
     - HARNESS_OPTIONS=j9
     - LC_ALL=C
-    - TEST_ONLINE_mariadb=mariadb://root:travis@/msa_test
-    - TEST_ONLINE_pg=postgresql://postgres@/msa_test
+    - TEST_ONLINE_mariadb=mariadb://root:travis@/mhf_test
+    - TEST_ONLINE_pg=postgresql://postgres@/mhf_test
 
 before_script:
-  - psql -U postgres -c 'create database msa_test'
+  - psql -U postgres -c 'create database mhf_test'
   - sudo mysql -e "SET Password=PASSWORD('travis')"
-  - sudo mysql -e 'create database msa_test;'
+  - sudo mysql -e 'create database mhf_test;'
 
 addons:
   mariadb: 10.4
