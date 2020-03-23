@@ -216,17 +216,17 @@ sub update_cookie {
 }
 
 sub delete {
-  my ($self, $id, $cookie) = @_;
+  my ($self, $identify, $cookie) = @_;
 
   return {result => 0, code => 500, data => $cookie}
     unless $self->check_table->{result};
 
   my $result = {result => 0, code => 400, data => $cookie};
-  return $result unless $id && $cookie;
+  return $result unless $identify && $cookie;
 
   my $q = $self->abstract->delete($self->table_name,
     {where => $self->identify . " = ? AND " . $self->cookie . " = ?"});
-  if (my $dbh = $self->sqlite->db->query($q, $id, $cookie)) {
+  if (my $dbh = $self->sqlite->db->query($q, $identify, $cookie)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
   }
@@ -234,13 +234,13 @@ sub delete {
 }
 
 sub check {
-  my ($self, $id, $cookie) = @_;
+  my ($self, $identify, $cookie) = @_;
 
   return {result => 0, code => 500, data => $cookie}
     unless $self->check_table->{result};
 
   my $result = {result => 0, code => 400, data => $cookie};
-  return $result unless $id && $cookie;
+  return $result unless $identify && $cookie;
 
   my $q = $self->abstract->select(
     $self->table_name,
@@ -248,7 +248,7 @@ sub check {
     {
       where => '('
         . $self->identify
-        . " = '$id' OR "
+        . " = '$identify' OR "
         . $self->cookie
         . " = '$cookie') AND "
         . $self->expire_date

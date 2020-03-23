@@ -213,17 +213,17 @@ sub update_cookie {
 }
 
 sub delete {
-  my ($self, $id, $cookie) = @_;
+  my ($self, $identify, $cookie) = @_;
 
   return {result => 0, code => 500, data => $cookie}
     unless $self->check_table->{result};
 
   my $result = {result => 0, code => 400, data => $cookie};
-  return $result unless $id && $cookie;
+  return $result unless $identify && $cookie;
 
   my $q = $self->abstract->delete($self->table_name,
     {where => $self->identify . " = ? AND " . $self->cookie . " = ?"});
-  if (my $dbh = $self->mariadb->db->query($q, $id, $cookie)) {
+  if (my $dbh = $self->mariadb->db->query($q, $identify, $cookie)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
   }
