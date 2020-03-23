@@ -233,7 +233,7 @@ sub delete {
 }
 
 sub check {
-  my ($self, $id, $cookie) = @_;
+  my ($self, $identify, $cookie) = @_;
 
   my $mhf_utils = $self->mhf_util->new;
   my $now_time  = $mhf_utils->sql_datetime(0);
@@ -242,7 +242,7 @@ sub check {
     unless $self->check_table->{result};
 
   my $result = {result => 0, code => 400, data => $cookie};
-  return $result unless $id && $cookie;
+  return $result unless $identify && $cookie;
 
   my $q = $self->abstract->select(
     $self->table_name,
@@ -250,7 +250,7 @@ sub check {
     {
       where => '('
         . $self->identify
-        . " = '$id' OR "
+        . " = '$identify' OR "
         . $self->cookie
         . " = '$cookie') AND "
         . $self->expire_date
