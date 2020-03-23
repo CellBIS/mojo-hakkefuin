@@ -10,6 +10,7 @@ use Mojo::Util qw(dumper secure_compare);
 # ABSTRACT: The Minimalistic Mojolicious Authentication
 our $VERSION       = '0.1.2';
 our $VERSION_STATE = 'Beta';
+our $CODENAME      = 'YataMirror';
 
 has mojo_hf => 'Mojo::Hakkefuin';
 has utils   => sub {
@@ -36,7 +37,11 @@ sub register {
   # Helper for version
   $app->helper(
     version => sub {
-      return {'num' => $VERSION, 'state' => $VERSION_STATE};
+      return {
+        'num'      => $VERSION,
+        'state'    => $VERSION_STATE,
+        'codename' => $CODENAME
+      };
     }
   );
 
