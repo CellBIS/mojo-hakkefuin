@@ -1,9 +1,9 @@
 Revision history for perl distribution Mojolicious::Plugin::Hakkefuin
 
-{{$NEXT}}
+0.1.2       2020-03-20 10:59:00+08:00
 
-
-0.1-beta    2020-03-19 05:58:00+08:00
+0.1.1       2020-03-19 05:58:00+08:00
+            v0.1.1-beta - on GitHub release
             - Use term MariaDB as instead of MySQL (yusrideb)
             - Prepare module to support lock and unlock session #1 (yusrideb)
             - Prepare unit tests for separate testing
@@ -12,7 +12,8 @@ Revision history for perl distribution Mojolicious::Plugin::Hakkefuin
             - fix commit history #5 (RudyBodo)
             - Add LICENSE file  (yusrideb)
 
-0.1-alpha   2019-06-18 06:18:00+08:00
+0.1.0      2019-06-18 06:18:00+08:00
+            v0.1-alpha - on GitHub release
             - Login and Logout
             - CSRF Protection
             - Backend available for SQLite, MySQL, dan PostgreSQL
