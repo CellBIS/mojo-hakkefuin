@@ -30,27 +30,6 @@ matrix:
         - mysql -e 'create database mhf_test;'
       env:
         - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
-    - perl: "5.14"
-      dist: trusty
-      before_script:
-        - psql -U postgres -c 'create database mhf_test'
-        - mysql -e 'create database mhf_test;'
-      env:
-        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
-    - perl: "5.12"
-      dist: trusty
-      before_script:
-        - psql -U postgres -c 'create database mhf_test'
-        - mysql -e 'create database mhf_test;'
-      env:
-        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
-    - perl: "5.10"
-      dist: trusty
-      before_script:
-        - psql -U postgres -c 'create database mhf_test'
-        - mysql -e 'create database mhf_test;'
-      env:
-        - TEST_ONLINE_mariadb=mariadb://root@/mhf_test
 
 env:
   global:
