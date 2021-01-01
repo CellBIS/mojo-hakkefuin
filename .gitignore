@@ -1,12 +1,13 @@
 .*
 *~
 _*
+!.github
 !.gitattributes
 !.gitignore
 !.appveyor.cmd
 !.appveyor.yml
 !.perltidyrc
-!.travis.yml
+!old-travis.yml
 /blib
 /pm_to_blib
 /Makefile
