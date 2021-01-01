@@ -83,6 +83,13 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Browser_com
 =head1 METHODS
 
 L<Mojo::Hakkefuin::Sessions> from all methods L<Mojolicious::Sessions>
+and implements the following new ones.
+
+=head2 store
+
+  $sessions->store;
+
+Store session data in signed cookie.
 
 =head1 SEE ALSO
 
