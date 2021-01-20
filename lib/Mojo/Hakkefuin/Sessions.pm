@@ -77,8 +77,7 @@ will have the "expires" and "max-age" attributes, and when the browser finds the
 attribute in a cookie, the cookie expiration will use "max-age" as a top priority.
 The "max-age" attribute only applies if the browser supports this attribute.
 Before set this attribute, please see
-L<Browser compatibility.|
-https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#Browser_compatibility>
+L<Browser Compatibility|https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/#Browser_compatibility>
 
 =head1 METHODS
 
