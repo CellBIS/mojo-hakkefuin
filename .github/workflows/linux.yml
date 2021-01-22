@@ -37,7 +37,7 @@ jobs:
           cpanm -n --installdeps . --with-all-features
           cpanm -n Test::Pod Test::Pod::Coverage
       - name: Run tests
-        run: prove -l t/*.t
+        run: prove -lvr
         env:
           HARNESS_OPTIONS: j3
           TEST_FOR: 500
