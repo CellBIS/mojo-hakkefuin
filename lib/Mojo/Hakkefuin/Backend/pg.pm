@@ -54,17 +54,25 @@ sub create_table {
 sub table_query {
   my $self = shift;
 
-  my $data = '';
-  $data .= 'CREATE TABLE IF NOT EXISTS ' . $self->table_name . '(';
-  $data .= $self->id . ' bigserial NOT NULL PRIMARY KEY, ';
-  $data .= $self->identify . ' TEXT NOT NULL, ';
-  $data .= $self->cookie . ' TEXT NOT NULL, ';
-  $data .= $self->csrf . ' TEXT NOT NULL, ';
-  $data .= $self->create_date . ' TIMESTAMP NOT NULL, ';
-  $data .= $self->expire_date . ' TIMESTAMP NOT NULL, ';
-  $data .= $self->cookie_lock . ' TEXT DEFAULT \'no_lock\' NULL, ';
-  $data .= $self->lock . ' INT NOT NULL)';
-  return $data;
+  $self->abstract->new(db_type => 'pg')->create_table(
+    $self->table_name,
+    [
+      $self->id,          $self->identify,    $self->cookie,
+      $self->csrf,        $self->create_date, $self->expire_date,
+      $self->cookie_lock, $self->lock
+    ],
+    {
+      $self->id          => {type => {name => 'bigserial'}, is_primarykey => 1},
+      $self->identify    => {type => {name => 'text'}},
+      $self->cookie      => {type => {name => 'text'}},
+      $self->csrf        => {type => {name => 'text'}},
+      $self->create_date => {type => {name => 'TIMESTAMP'}},
+      $self->expire_date => {type => {name => 'TIMESTAMP'}},
+      $self->cookie_lock =>
+        {type => {name => 'text'}, 'default' => '\'no_lock\'', is_null => 1},
+      $self->lock => {type => {name => 'int'}}
+    }
+  );
 }
 
 sub create {
