@@ -1,4 +1,3 @@
-BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Mojo::Base -strict;
 
 use Test::More;

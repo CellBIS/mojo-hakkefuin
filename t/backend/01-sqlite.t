@@ -1,14 +1,13 @@
-BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Mojo::Base -strict;
 
 use Test::More;
 use Mojo::Hakkefuin::Test::Backend;
 use Mojo::Home;
 
-my ($btest, $db,          $backend,   $id);
-my ($data,  $data_create, $data_read, $data_update);
+my ($btest,        $db,          $backend,   $id);
+my ($data,         $data_create, $data_read, $data_update);
 my ($data_cookies, $data_csrf);
-my ($result, $r_create, $r_update, $r_delete);
+my ($result,       $r_create, $r_update, $r_delete);
 
 my $home = Mojo::Home->new();
 my $path = $home->child(qw(t backend migrations));

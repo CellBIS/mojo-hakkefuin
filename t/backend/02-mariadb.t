@@ -1,4 +1,3 @@
-BEGIN { $ENV{MOJO_REACTOR} = 'Mojo::Reactor::Poll' }
 use Mojo::Base -strict;
 
 use Test::More;
@@ -8,10 +7,10 @@ plan skip_all => 'set TEST_ONLINE_mariadb to enable this test'
   unless $ENV{TEST_ONLINE_mariadb};
 
 my $dsn = $ENV{TEST_ONLINE_mariadb};
-my ($btest, $db,          $backend,   $id);
-my ($data,  $data_create, $data_read, $data_update);
+my ($btest,        $db,          $backend,   $id);
+my ($data,         $data_create, $data_read, $data_update);
 my ($data_cookies, $data_csrf);
-my ($result, $r_create, $r_update, $r_delete);
+my ($result,       $r_create, $r_update, $r_delete);
 
 $btest = Mojo::Hakkefuin::Test::Backend->new(dsn => $dsn);
 $btest->via('mysql');
