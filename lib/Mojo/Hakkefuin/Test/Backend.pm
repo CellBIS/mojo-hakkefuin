@@ -85,7 +85,7 @@ Mojo::Hakkefuin::Test::Backend - A part of Unit Testing
 
   use Mojo::Hakkefuin::Test::Backend
   
-  # Initializataion for SQLite
+  # Initialization for SQLite
   my $btest = Mojo::Hakkefuin::Test::Backend->new(
     via => 'sqlite',
     dir => '/home/user/mojo/app/t/path',
@@ -94,7 +94,7 @@ Mojo::Hakkefuin::Test::Backend - A part of Unit Testing
   $db      = $backend->sqlite->db;
   ok $db->ping, 'SQLite connected';
   
-  # Initializataion for MariaDB/MySQL
+  # Initialization for MariaDB/MySQL
   my $btest = Mojo::Hakkefuin::Test::Backend->new(
     via => 'mariadb',
     dir => 'migrations',
@@ -109,7 +109,7 @@ Mojo::Hakkefuin::Test::Backend - A part of Unit Testing
   $db      = $backend->mariadb->db;
   ok $db->ping, 'MariaDB connected';
   
-  # Initializataion for PostgreSQL
+  # Initialization for PostgreSQL
   my $btest = Mojo::Hakkefuin::Test::Backend->new(
     via => 'pg',
     dir => 'migrations',
