@@ -3,7 +3,7 @@ use Mojo::Base -strict;
 use Test::More;
 use Mojo::Hakkefuin::Test::Backend;
 
-plan skip_all => 'set TEST_ONLINE_mariadb to enable this test'
+plan skip_all => 'set TEST_ONLINE_pg to enable this test'
   unless $ENV{TEST_ONLINE_pg};
 
 my $dsn = $ENV{TEST_ONLINE_pg};
