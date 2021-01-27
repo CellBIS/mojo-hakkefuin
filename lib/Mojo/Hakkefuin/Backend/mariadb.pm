@@ -56,7 +56,7 @@ sub table_query {
     ],
     {
       $self->id =>
-        {type => {name => 'integer'}, is_primarykey => 1, is_autoincre => 1},
+        {type => {name => 'int'}, is_primarykey => 1, is_autoincre => 1},
       $self->identify    => {type => {name => 'text'}},
       $self->cookie      => {type => {name => 'text'}},
       $self->csrf        => {type => {name => 'text'}},
