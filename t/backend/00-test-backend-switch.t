@@ -65,6 +65,7 @@ SKIP: {
   note 'Test multiple switch backend';
 
   $btest->via('sqlite');
+  unless (-d $btest->dir) { mkdir $btest->dir }
   $btest->load_backend;
 
   $backend = $btest->backend;
