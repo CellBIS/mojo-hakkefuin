@@ -36,7 +36,7 @@ sub register {
 
   # Helper for version
   $app->helper(
-    version => sub {
+    mojo_version => sub {
       return {
         'num'      => $VERSION,
         'state'    => $VERSION_STATE,
