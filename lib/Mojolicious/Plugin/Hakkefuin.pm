@@ -5,7 +5,7 @@ use CellBIS::Random;
 use Mojo::Hakkefuin;
 use Mojo::Hakkefuin::Utils;
 use Mojo::Hakkefuin::Sessions;
-use Mojo::Util qw(dumper secure_compare);
+use Mojo::Util qw(secure_compare);
 
 # ABSTRACT: The Minimalistic Mojolicious Authentication
 our $VERSION       = '0.1.2';
@@ -77,7 +77,7 @@ sub register {
     path     => '/',
     httponly => 1,
     expires  => time + $time_cookies->{cookies},
-    max_age  => $time_cookies,
+    max_age  => $time_cookies->{cookies},
     secure   => 0
   };
   $conf->{'cookies_lock'} //= {
@@ -85,7 +85,7 @@ sub register {
     path     => '/',
     httponly => 1,
     expires  => time + $time_cookies->{lock},
-    max_age  => $time_cookies,
+    max_age  => $time_cookies->{lock},
     secure   => 0
   };
   $conf->{'session'} //= {
@@ -121,10 +121,10 @@ sub register {
     }
   );
 
-  $app->helper($pre . '_lock'   => sub { $self->_lock($conf, $mhf, @_) });
-  $app->helper($pre . '_unlock' => sub { $self->_unlock($conf, $mhf, @_) });
-  $app->helper($pre . '_signin'  => sub { $self->_sign_in($conf, $mhf, @_) });
-  $app->helper($pre . '_signout' => sub { $self->_sign_out($conf, $mhf, @_) });
+  $app->helper($pre . '_lock'     => sub { $self->_lock($conf, $mhf, @_) });
+  $app->helper($pre . '_unlock'   => sub { $self->_unlock($conf, $mhf, @_) });
+  $app->helper($pre . '_signin'   => sub { $self->_sign_in($conf, $mhf, @_) });
+  $app->helper($pre . '_signout'  => sub { $self->_sign_out($conf, $mhf, @_) });
   $app->helper($pre . '_has_auth' => sub { $self->_has_auth($conf, $mhf, @_) });
   $app->helper(
     $pre . '_auth_update' => sub { $self->_auth_update($conf, $mhf, @_) });
@@ -134,7 +134,7 @@ sub register {
     $pre . '_csrf_regen' => sub { $self->_csrfreset($conf, $mhf, @_) });
   $app->helper($pre . '_csrf_get' => sub { $self->_csrf_get($conf, @_) });
   $app->helper($pre . '_csrf_val' => sub { $self->_csrf_val($conf, @_) });
-  $app->helper(mhf_backend => sub { $mhf->backend });
+  $app->helper(mhf_backend        => sub { $mhf->backend });
 }
 
 sub _lock {
@@ -262,6 +262,7 @@ sub create {
   my $cookie_key = $conf->{'cookies'}->{name};
   my $cookie_val
     = Mojo::Util::hmac_sha1_sum($self->utils->gen_cookie(5), $csrf);
+
   $app->cookie($cookie_key, $cookie_val, $conf->{'cookies'});
   [$cookie_val, $csrf];
 }
@@ -341,7 +342,7 @@ Mojolicious::Plugin::Hakkefuin - Mojolicious Web Authentication.
     'lock' => 1,
     'cl.time' => '60m'
   });
-  
+
 =head1 DESCRIPTION
 
 L<Mojolicious::Plugin::Hakkefuin> is a L<Mojolicious> plugin for
@@ -360,7 +361,7 @@ Web Authentication. (Minimalistic and Powerful).
   plugin 'Hakkefuin' => {
     'helper.prefix' => 'your_prefix_here'
   };
-  
+
 To change prefix of all helpers. By default, C<helper.prefix> is C<mhf_>.
 
 =head2 stash.prefix
@@ -374,7 +375,7 @@ To change prefix of all helpers. By default, C<helper.prefix> is C<mhf_>.
   plugin 'Hakkefuin' => {
     'stash.prefix' => 'your_stash_prefix_here'
   };
-  
+
 To change prefix of stash. By default, C<stash.prefix> is C<mhf_>.
 
 =head2 csrf.name
@@ -388,7 +389,7 @@ To change prefix of stash. By default, C<stash.prefix> is C<mhf_>.
   plugin 'Hakkefuin' => {
     'csrf.name' => 'your_csrf_name_here'
   };
-  
+
 To change csrf name in session and HTTP Headers. By default, C<csrf.prefix>
 is C<mhf_csrf_token>.
 
@@ -405,7 +406,7 @@ is C<mhf_csrf_token>.
     via => 'mariadb', # OR
     via => 'pg'
   };
-  
+
 Use one of C<'mariadb'> or C<'pg'> or C<'sqlite'>. (For C<'sqlite'> option
 does not need to be specified, as it would by default be using C<'sqlite'>
 if option C<via> is not specified).
@@ -421,7 +422,7 @@ if option C<via> is not specified).
   plugin 'Hakkefuin' => {
     dir => 'your-custon-dirname-here'
   };
-  
+
 Specified directory for L<Mojolicious::Plugin::Hakkefuin> configure files.
 
 =head2 c.time
@@ -435,7 +436,7 @@ Specified directory for L<Mojolicious::Plugin::Hakkefuin> configure files.
   plugin 'Hakkefuin' => {
     'c.time' => '1w'
   };
-  
+
 To set a cookie expires time. By default is 1 week.
 
 =head2 s.time
@@ -449,7 +450,7 @@ To set a cookie expires time. By default is 1 week.
   plugin 'Hakkefuin' => {
     's.time' => '1w'
   };
-  
+
 To set a cookie session expires time. By default is 1 week. For more
 information of the abbreviation for time C<c.time> and C<s.time> helper,
 see L<Mojo::Hakkefuin::Utils>.
@@ -507,50 +508,50 @@ with option C<helper.prefix>.
 =head2 mhf_lock
 
   $c->mhf_lock() # In the controllers
-  
+
 Helper for action sign-in (login) web application.
 
 =head2 mhf_unlock
 
   $c->mhf_unlock(); # In the controllers
-  
+
 Helper for action sign-out (logout) web application.
 
 =head2 mhf_signin
 
   $c->mhf_signin('login-identify') # In the controllers
-  
+
 Helper for action sign-in (login) web application.
 
 =head2 mhf_signout
 
   $c->mhf_signout('login-identify'); # In the controllers
-  
+
 Helper for action sign-out (logout) web application.
 
 =head2 mhf_has_auth
 
   $c->mhf_has_auth; # In the controllers
-  
+
 Helper for checking if routes has authenticated.
 
 =head2 mhf_csrf
 
   $c->mhf_csrf; # In the controllers
   <%= mhf_csrf %> # In the template.
-  
+
 Helper for generate csrf;
 
 =head2 mhf_csrf_val
 
   $c->mhf_csrf_val; # In the controllers
-  
+
 Helper for validation that csrf from request routes.
 
 =head2 mhf_backend
 
   $c->mhf_backend; # In the controllers
-  
+
 Helper for access to backend.
 
 =head1 METHODS
