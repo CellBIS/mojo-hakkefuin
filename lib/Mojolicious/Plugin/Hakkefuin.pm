@@ -72,28 +72,19 @@ sub register {
     cookies => $self->utils->time_convert($conf->{'c.time'}),
     lock    => $self->utils->time_convert($conf->{'cl.time'}),
   };
-  $conf->{'cookies'} //= {
-    name     => 'clg',
-    path     => '/',
-    httponly => 1,
-    expires  => time + $time_cookies->{cookies},
-    max_age  => $time_cookies->{cookies},
-    secure   => 0
-  };
-  $conf->{'cookies_lock'} //= {
-    name     => 'clglc',
-    path     => '/',
-    httponly => 1,
-    expires  => time + $time_cookies->{lock},
-    max_age  => $time_cookies->{lock},
-    secure   => 0
-  };
-  $conf->{'session'} //= {
-    cookie_name        => '_mhf',
-    cookie_path        => '/',
-    default_expiration => $time_cookies->{session},
-    secure             => 0
-  };
+  $conf->{'cookies'}
+    //= {name => 'clg', path => '/', httponly => 1, secure => 0};
+  $conf->{'cookies'}->{expires} = time + $time_cookies->{cookies};
+  $conf->{'cookies'}->{max_age} = $time_cookies->{cookies};
+
+  $conf->{'cookies_lock'}
+    //= {name => 'clglc', path => '/', httponly => 1, secure => 0};
+  $conf->{'cookies_lock'}->{expires} = time + $time_cookies->{lock};
+  $conf->{'cookies_lock'}->{max_age} = $time_cookies->{lock};
+
+  $conf->{'session'}
+    //= {cookie_name => '_mhf', cookie_path => '/', secure => 0};
+  $conf->{'session'}->{default_expiration} = $time_cookies->{session};
   $conf->{dir} = $home . '/' . $conf->{'dir'};
 
   # Build Mojo::Hakkefuin Params
