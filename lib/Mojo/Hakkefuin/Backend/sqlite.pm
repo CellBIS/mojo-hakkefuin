@@ -1,6 +1,7 @@
 package Mojo::Hakkefuin::Backend::sqlite;
 use Mojo::Base 'Mojo::Hakkefuin::Backend';
 
+use Mojo::Util qw(dumper);
 use Mojo::SQLite;
 use CellBIS::SQL::Abstract;
 
@@ -28,8 +29,7 @@ sub check_table {
     {where => 'type=\'table\' AND tbl_name=\'' . $self->table_name . '\''});
 
   if (my $dbh = $self->sqlite->db->query($q)) {
-    $result->{result} = $dbh->hash;
-    $result->{code}   = 200;
+    $result = {result => $dbh->hash, code => 200};
   }
   return $result;
 }
@@ -83,16 +83,22 @@ sub create {
   my $mhf_utils   = $self->mhf_util->new;
   my $now_time    = $mhf_utils->sql_datetime(0);
   my $expire_time = $mhf_utils->sql_datetime($expires);
-  my $q           = $self->abstract->insert(
+
+  my @q = (
     $self->table_name,
-    [
-      $self->identify,    $self->cookie,      $self->csrf,
-      $self->create_date, $self->expire_date, $self->cookie_lock,
-      $self->lock
-    ],
-    [$identify, $cookie, $csrf, $now_time, $expire_time, 'no_lock', 0]
+    {
+      $self->identify    => $identify,
+      $self->cookie      => $cookie,
+      $self->csrf        => $csrf,
+      $self->create_date => $now_time,
+      $self->expire_date => $expire_time,
+      $self->cookie_lock => 'no_lock',
+      $self->lock        => 0
+    },
+    {on_conflict => undef}
   );
-  if (my $dbh = $self->sqlite->db->query($q)) {
+
+  if (my $dbh = $self->sqlite->db->insert(@q)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
   }
@@ -109,17 +115,11 @@ sub read {
     unless $self->check_table->{result};
 
   my $result = {result => 0, code => 400, data => $cookie};
-  my $q      = $self->abstract->select(
-    $self->table_name,
-    [],
-    {
-          where => $self->identify
-        . " = '$identify' AND "
-        . $self->cookie
-        . " = '$cookie'"
-    }
+  my @q      = (
+    $self->table_name, '*',
+    {$self->identify => $identify, $self->cookie => $cookie}
   );
-  if (my $dbh = $self->sqlite->db->query($q)) {
+  if (my $dbh = $self->sqlite->db->select(@q)) {
     $result->{result} = 1;
     $result->{code}   = 200;
     $result->{data}   = $dbh->hash;
@@ -139,18 +139,12 @@ sub update {
   my $result = {result => 0, code => 400, csrf => $csrf, cookie => $cookie};
   return $result unless $id && $csrf;
 
-  my $q = $self->abstract->update(
+  my @q = (
     $self->table_name,
-    {$self->cookie, => $cookie, $self->csrf => $csrf},
-    {
-          where => ''
-        . $self->id
-        . " = $id AND "
-        . $self->expire_date
-        . " >= '$now_time'"
-    }
+    {$self->cookie, => $cookie, $self->csrf        => $csrf},
+    {$self->id      => $id,     $self->expire_date => {'>=', $now_time}}
   );
-  if (my $dbh = $self->sqlite->db->query($q)) {
+  if (my $dbh = $self->sqlite->db->update(@q)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
   }
@@ -169,17 +163,12 @@ sub update_csrf {
   my $result = {result => 0, code => 400, data => $csrf};
   return $result unless $id && $csrf;
 
-  my $q = $self->abstract->update(
+  my @q = (
     $self->table_name,
     {$self->csrf => $csrf},
-    {
-          where => $self->id
-        . " = '$id' AND "
-        . $self->expire_date
-        . " >= '$now_time'"
-    }
+    {$self->id   => $id, $self->expire_date => {'>=', $now_time}}
   );
-  if (my $dbh = $self->sqlite->db->query($q)) {
+  if (my $dbh = $self->sqlite->db->update(@q)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
   }
@@ -198,17 +187,12 @@ sub update_cookie {
   my $result = {result => 0, code => 400, data => $cookie};
   return $result unless $id && $cookie;
 
-  my $q = $self->abstract->update(
+  my @q = (
     $self->table_name,
     {$self->cookie => $cookie},
-    {
-          where => $self->id
-        . " = '$id' AND "
-        . $self->expire_date
-        . " >= '$now_time'"
-    }
+    {$self->id     => $id, $self->expire_date => {'>=', $now_time}}
   );
-  if (my $dbh = $self->sqlite->db->query($q)) {
+  if (my $dbh = $self->sqlite->db->update(@q)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
   }
@@ -224,9 +208,10 @@ sub delete {
   my $result = {result => 0, code => 400, data => $cookie};
   return $result unless $identify && $cookie;
 
-  my $q = $self->abstract->delete($self->table_name,
-    {where => $self->identify . " = ? AND " . $self->cookie . " = ?"});
-  if (my $dbh = $self->sqlite->db->query($q, $identify, $cookie)) {
+  my @q = (
+    $self->table_name, {$self->identify => $identify, $self->cookie => $cookie}
+  );
+  if (my $dbh = $self->sqlite->db->delete(@q)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
   }
@@ -242,21 +227,15 @@ sub check {
   my $result = {result => 0, code => 400, data => $cookie};
   return $result unless $identify && $cookie;
 
-  my $q = $self->abstract->select(
+  my @q = (
     $self->table_name,
-    [],
+    '*',
     {
-      where => '('
-        . $self->identify
-        . " = '$identify' OR "
-        . $self->cookie
-        . " = '$cookie') AND "
-        . $self->expire_date
-        . " > datetime('now','localtime')",
-      limit => 1
+      -or => {$self->identify => $identify, $self->cookie => $cookie},
+      $self->expire_date => {'>', "'datetime('now', 'localtime')"}
     }
   );
-  if (my $rv = $self->sqlite->db->query($q)) {
+  if (my $rv = $self->sqlite->db->select(@q)) {
     my $r_data = $rv->hash;
     $result = {
       result => 1,
@@ -419,7 +398,7 @@ in the HTTP header.
 
 =item $expires
 
-The variable that contains timestamp format. e.g. C<2020-03-23 12:01:53>.
+The variable that contains timestamp format. e.g. C<2023-03-23 12:01:53>.
 For more information see L<Mojo::Hakkefuin::Utils>.
 
 =back
