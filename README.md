@@ -3,7 +3,7 @@ The Mojolicious plugin for web authentication with simple methods
 but uses additional cookies that are saved to the database 
 to identify cookie expiration periods.
 
-The plug-in is temporary released on github
+The plug-in is temporary released on GitHub
 
 In Mojolicious Lite :
 ```perl
@@ -11,8 +11,8 @@ use Mojolicious::Lite;
 plugin 'Hakkefuin' => {
   'helper.prefix' => 'your_prefix_here_',
   'stash.prefix' => 'your_stash_prefix_here',
-  via => 'mysql',
-  dir => 'your-dir-location-file-db'
+  via => 'mariadb',
+  dsn => 'mysql://root:password@mysql:3306/mhf_test',
 };
 
 ```
@@ -23,8 +23,8 @@ In Mojolicious non-Lite :
 $self->plugin('Hakkefuin' => {
   'helper.prefix' => 'your_prefix_here',
   'stash.prefix' => 'your_stash_prefix_here',
-  via => 'mysql',
-  dir => 'your-dir-location-file-db'
+  via => 'mariadb',
+  dsn => 'mysql://root:password@mysql:3306/mhf_test',
 });
 
 ```
