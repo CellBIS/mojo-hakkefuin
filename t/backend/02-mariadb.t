@@ -13,7 +13,7 @@ my ($data_cookies, $data_csrf);
 my ($result,       $r_create, $r_update, $r_delete);
 
 $btest = Mojo::Hakkefuin::Test::Backend->new(dsn => $dsn);
-$btest->via('mysql');
+$btest->via('mariadb');
 $btest->load_backend;
 
 $backend = $btest->backend;
