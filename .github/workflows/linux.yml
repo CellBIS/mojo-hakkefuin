@@ -23,11 +23,16 @@ jobs:
           - '5.16'
           - '5.18'
           - '5.24'
-          - '5.30'
+          - '5.32'
+          - '5.36'
     container:
       image: perl:${{matrix.perl-version}}
     steps:
       - uses: actions/checkout@v2
+      - name: upgrade libpq
+        run: |
+          curl https://salsa.debian.org/postgresql/postgresql-common/raw/master/pgdg/apt.postgresql.org.sh | bash
+          apt-get -y update && apt-get -y upgrade
       - name: perl -V
         run: perl -V
       - name: Fix ExtUtils::MakeMaker (for Perl 5.16 and 5.18)
