@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           cpanm -n --installdeps . --with-all-features
-          cpanm -n Test::Pod Test::Pod::Coverage
+          cpanm -n Test::Pod Test::Pod::Coverage DBD::mysql
       - name: Run tests
         run: prove -lvr
         env:
