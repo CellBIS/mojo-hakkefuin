@@ -209,7 +209,7 @@ in the HTTP header.
 
 =item $expires
 
-The variable that contains timestamp format. e.g. C<2020-03-23 12:01:53>.
+The variable that contains timestamp format. e.g. C<2023-03-23 12:01:53>.
 For more information see L<Mojo::Hakkefuin::Utils>.
 
 =back

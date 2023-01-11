@@ -240,7 +240,7 @@ Achmad Yusri Afandi, C<yusrideb@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2020 by Achmad Yusri Afandi
+Copyright (C) 2023 by Achmad Yusri Afandi
 
 This program is free software, you can redistribute it and/or modify
 it under the terms of the Artistic License version 2.0.
