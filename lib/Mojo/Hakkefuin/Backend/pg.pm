@@ -1,8 +1,7 @@
 package Mojo::Hakkefuin::Backend::pg;
 use Mojo::Base 'Mojo::Hakkefuin::Backend';
 
-use Mojo::Pg;
-use Mojo::Util 'dumper';
+use Mojo::Loader 'load_class';
 use CellBIS::SQL::Abstract;
 
 has 'pg';
@@ -13,7 +12,9 @@ sub new {
   my $self = shift->SUPER::new(@_);
 
   $self->file_migration($self->dir . '/mhf_pg.sql');
-  $self->pg(Mojo::Pg->new($self->dsn()));
+  my $class = 'Mojo::Pg';
+  load_class $class;
+  $self->mariadb($class->new($self->dsn()));
 
   return $self;
 }

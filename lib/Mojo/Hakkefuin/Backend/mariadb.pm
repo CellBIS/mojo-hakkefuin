@@ -1,7 +1,7 @@
 package Mojo::Hakkefuin::Backend::mariadb;
 use Mojo::Base 'Mojo::Hakkefuin::Backend';
 
-use Mojo::mysql;
+use Mojo::Loader 'load_class';
 use CellBIS::SQL::Abstract;
 
 has 'mariadb';
@@ -12,7 +12,9 @@ sub new {
   my $self = shift->SUPER::new(@_);
 
   $self->file_migration($self->dir . '/mhf_mariadb.sql');
-  $self->mariadb(Mojo::mysql->new($self->dsn()));
+  my $class = 'Mojo::mysql';
+  load_class $class;
+  $self->mariadb($class->new($self->dsn()));
 
   return $self;
 }
