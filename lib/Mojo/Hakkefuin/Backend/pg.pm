@@ -14,7 +14,7 @@ sub new {
   $self->file_migration($self->dir . '/mhf_pg.sql');
   my $class = 'Mojo::Pg';
   load_class $class;
-  $self->mariadb($class->new($self->dsn()));
+  $self->pg($class->new($self->dsn()));
 
   return $self;
 }
