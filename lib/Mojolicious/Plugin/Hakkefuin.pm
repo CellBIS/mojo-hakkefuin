@@ -8,7 +8,7 @@ use Mojo::Hakkefuin::Sessions;
 use Mojo::Util qw(secure_compare);
 
 # ABSTRACT: The Minimalistic Mojolicious Authentication
-our $VERSION       = '0.1.2';
+our $VERSION       = '0.1.3';
 our $VERSION_STATE = 'Beta';
 our $CODENAME      = 'YataMirror';
 

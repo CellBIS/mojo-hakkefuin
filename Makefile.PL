@@ -37,7 +37,7 @@ my %WriteMakefileArgs = (
     "Test::Mojo"        => 0,
     "Test::More"        => 0
   },
-  "VERSION" => "0.1.2",
+  "VERSION" => "0.1.3",
   "test"    =>
     {"TESTS" => "t/*.t t/backend/*.t t/mojolicious/*.t t/mojolicious/lite/*.t"}
 );
@@ -59,7 +59,6 @@ my %FallbackPrereqs = (
   "Test::Mojo"             => 0,
   "Test::More"             => 0
 );
-
 
 unless (eval { ExtUtils::MakeMaker->VERSION(6.63_03) }) {
   delete $WriteMakefileArgs{TEST_REQUIRES};
