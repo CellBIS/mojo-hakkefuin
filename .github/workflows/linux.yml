@@ -1,52 +1,53 @@
 name: linux
-on: [push, pull_request]
+on:
+  push:
+    branches: [ '*' ]
+    tags-ignore: [ '*' ]
+  pull_request:
+
 jobs:
   perl:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mariadb:10.3
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: mhf_test
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-        ports:
-          - 3306:3306
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: mhf_test
     strategy:
+      fail-fast: false
       matrix:
         perl-version:
           - '5.16'
           - '5.18'
-          - '5.24'
-          - '5.32'
+          - '5.20'
+          - '5.22'
+          - '5.30'
           - '5.36'
-    container:
-      image: perl:${{matrix.perl-version}}
+          - '5.38'
+          - '5.40'
+
     steps:
-      - uses: actions/checkout@v2
-      - name: upgrade libpq
-        run: |
-          curl https://salsa.debian.org/postgresql/postgresql-common/raw/master/pgdg/apt.postgresql.org.sh | bash
-          apt-get -y update && apt-get -y upgrade
-      - name: perl -V
-        run: perl -V
-      - name: Fix ExtUtils::MakeMaker (for Perl 5.16 and 5.18)
-        run: cpanm -n App::cpanminus ExtUtils::MakeMaker
+      - uses: actions/checkout@v4
+
+      - name: Set up Perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl-version }}
+
+      - name: Install cpanm
+        run: curl -L https://cpanmin.us | perl - App::cpanminus
+
+      # Perl lama butuh MakeMaker baru
+      - name: Update ExtUtils::MakeMaker for Perl < 5.20
+        if: ${{ matrix.perl-version == '5.16' || matrix.perl-version == '5.18' }}
+        run: cpanm -n ExtUtils::MakeMaker
+
       - name: Install dependencies
         run: |
-          cpanm -n --installdeps . --with-all-features
-          cpanm -n Test::Pod Test::Pod::Coverage DBD::mysql
+          cpanm -n --installdeps .
+          cpanm -n Test::Pod Test::Pod::Coverage TAP::Formatter::GitHubActions
+
+      - name: Build XS
+        run: |
+          perl Makefile.PL
+          perl -MConfig -e 'system($Config{make}) == 0 or die "$Config{make} failed";'
+
       - name: Run tests
-        run: prove -lvr
+        run: prove --merge --formatter TAP::Formatter::GitHubActions -b t
         env:
-          HARNESS_OPTIONS: j3
-          TEST_FOR: 500
-          TEST_ONLINE_mariadb: mysql://root:password@mysql:3306/mhf_test
-          TEST_ONLINE_pg: postgresql://postgres:postgres@postgres:5432/mhf_test
           TEST_POD: 1
-          TEST_PUBSUB: 1
