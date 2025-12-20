@@ -1,0 +1,66 @@
+name: windows
+
+on:
+  push:
+    branches: [ '*' ]
+    tags-ignore: [ '*' ]
+  pull_request:
+
+jobs:
+  perl:
+    name: Windows / perl ${{ matrix.perl-version }}
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+          - '5.20'
+          - '5.22'
+          - '5.30'
+          - '5.36'
+          - '5.38'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Perl (Strawberry)
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl-version }}
+
+      # Force Strawberry Perl to be the default Perl on PATH
+      - name: Force Strawberry Perl first on PATH
+        shell: cmd
+        run: |
+          echo ##vso[task.setvariable variable=STRAWBERRY_BIN]%PERL_BIN%
+          echo ##vso[task.setvariable variable=STRAWBERRY_CBIN]%PERL_CBIN%
+
+      # Install cpanm (Windows-safe)
+      - name: Install cpanm
+        shell: cmd
+        run: |
+          curl -L https://cpanmin.us -o cpanm.pl
+          perl cpanm.pl App::cpanminus
+
+      # Install deps + formatter
+      - name: Install dependencies
+        shell: cmd
+        run: |
+          cpanm -n --installdeps . && cpanm -n TAP::Formatter::GitHubActions
+
+      # Build XS (detect make tool)
+      - name: Build XS
+        shell: cmd
+        run: |
+          perl -e "use Config; print $Config{make};" > makecmd.txt
+          set /p MAKECMD=<makecmd.txt
+          echo Using make tool %MAKECMD%
+          perl Makefile.PL
+          %MAKECMD%
+
+      # Run tests using Strawberry Perl (not Git Bash, not system perl)
+      - name: Run tests
+        shell: cmd
+        run: |
+          perl -S prove --merge --formatter TAP::Formatter::GitHubActions -b t

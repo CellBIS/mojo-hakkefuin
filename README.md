@@ -1,4 +1,4 @@
-# 🔒 Mojo::Hakkefuin ![linux](https://github.com/CellBIS/mojo-hakkefuin/workflows/linux/badge.svg)
+# 🔒 Mojo::Hakkefuin [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/linux/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions) [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/macos/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions) [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/windows/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions)
 The Mojolicious plugin for web authentication with simple methods 
 but uses additional cookies that are saved to the database 
 to identify cookie expiration periods.
