@@ -1,6 +1,12 @@
 Revision history for perl distribution Mojolicious::Plugin::Hakkefuin
 
-0.1.2       2020-03-20 10:59:00+08:00
+0.1.2       2025-12-21 02:17:04+08:00
+            v0.1.2-beta (YataMirror)
+            - Switch backend queries to SQL::Abstract (Mojo::Pg), fix update paths and identify handling, and allow the mysql alias with aligned env naming (Achmad Yusri Afandi)
+            - Refine session/cookie handling with separate expiry rows, configurable cookie max_age, renamed version helper, and corrected method loading/calls (Achmad Yusri Afandi / yusrideb)
+            - Harden database setup: ensure sqlite dir creation, use int IDs, ship DBD::mysql, and refresh Makefile.PL/cpanfile (Achmad Yusri Afandi / yusrideb)
+            - Expand testing and CI with backend test modules, recursive prove runs, GitHub Actions replacing Travis, updated Perl matrix (incl. 5.32/5.36), and cleaned envs (Achmad Yusri Afandi / yusrideb)
+            - Update documentation: README and plugin POD fixes, year refresh, and link formatting corrections (Achmad Yusri Afandi / yusrideb)
 
 0.1.1       2020-03-19 05:58:00+08:00
             v0.1.1-beta - on GitHub release
