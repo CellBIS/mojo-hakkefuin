@@ -1,4 +1,4 @@
-use Mojo::Base -strict;
+use Mojo::Base -strict, -signatures;
 
 use Test::More;
 use Mojolicious::Lite;
@@ -17,19 +17,16 @@ plugin "Hakkefuin", {dir => 'migrations'};
 
 app->secrets(['s3cr3t_m0j0l!c1oU5']);
 
-get '/' => sub {
-  my $c = shift;
+get '/' => sub ($c) {
   $c->render(
     text => 'Welcome to Sample testing Mojolicious::Plugin::Hakkefuin');
 };
 
-get '/login-page' => sub {
-  my $c = shift;
+get '/login-page' => sub ($c) {
   $c->render(text => 'login');
 };
 
-post '/login' => sub {
-  my $c = shift;
+post '/login' => sub ($c) {
 
   # Query or POST parameters
   my $user = $c->param('user') || '';
@@ -44,8 +41,7 @@ post '/login' => sub {
   }
 };
 
-get '/csrf-reset' => sub {
-  my $c = shift;
+get '/csrf-reset' => sub ($c) {
 
   my $data_result = 'can\'t reset';
   my $result      = $c->mhf_has_auth();
@@ -57,14 +53,12 @@ get '/csrf-reset' => sub {
   $c->render(text => $data_result);
 };
 
-get '/page' => sub {
-  my $c = shift;
+get '/page' => sub ($c) {
   $c->render(
     text => $c->mhf_has_auth()->{'code'} == 200 ? 'page' : 'Unauthenticated');
 };
 
-get '/stash' => sub {
-  my $c = shift;
+get '/stash' => sub ($c) {
   my $check_stash
     = $c->mhf_has_auth()->{code} == 200
     ? $c->stash->{'mhf.identify'}
@@ -72,9 +66,7 @@ get '/stash' => sub {
   $c->render(text => $check_stash);
 };
 
-post '/logout' => sub {
-  my $c = shift;
-
+post '/logout' => sub ($c) {
   my $check_auth = $c->mhf_has_auth();
   if ($check_auth->{'code'} == 200) {
     if ($c->mhf_signout($c->stash->{'mhf.identify'})->{code} == 200) {
@@ -89,45 +81,52 @@ my $t = Test::Mojo->new;
 $t->ua->max_redirects(1);
 
 # Main page
-$t->get_ok('/')->status_is(200)
+$t->get_ok('/')
+  ->status_is(200)
   ->content_is('Welcome to Sample testing Mojolicious::Plugin::Hakkefuin');
 
 # Login Page
 $t->get_ok('/login-page')->status_is(200)->content_is('login', 'Login Page');
 
 # Login Action is fails.
-$t->post_ok('/login?user=yusrideb&pass=s3cr3t1')->status_is(200)
+$t->post_ok('/login?user=yusrideb&pass=s3cr3t1')
+  ->status_is(200)
   ->content_is('error user or pass', 'Fail Login');
 
 # Login Action is Success
-$t->post_ok('/login?user=yusrideb&pass=s3cr3t')->status_is(200)
+$t->post_ok('/login?user=yusrideb&pass=s3cr3t')
+  ->status_is(200)
   ->content_is('login success', 'Success Login');
 
 # Check Stash login
 $t->get_ok('/stash')->status_is(200);
 
 # CSRF Reset
-$t->get_ok('/csrf-reset')->status_is(200)
+$t->get_ok('/csrf-reset')
+  ->status_is(200)
   ->content_is('success reset', 'CSRF reset success');
 
 # Page with Authenticated
 $t->get_ok('/page')->status_is(200)->content_is('page', 'Authenticated page');
 
 # Logout
-$t->post_ok('/logout')->status_is(200)
+$t->post_ok('/logout')
+  ->status_is(200)
   ->content_is('logout success', 'Logout Success');
 
 # Page without Authenticated
-$t->get_ok('/page')->status_is(200)
+$t->get_ok('/page')
+  ->status_is(200)
   ->content_is('Unauthenticated', 'Unauthenticated page');
 
 # Check stash login without Authenticated
-$t->get_ok('/stash')->status_is(200)
+$t->get_ok('/stash')
+  ->status_is(200)
   ->content_is('fail stash login', 'stash is not found');
 
 done_testing();
 
 # Clear
-$t->app->mhf_backend->empty_table;
-$t->app->mhf_backend->drop_table;
-$path->remove_tree;
+# $t->app->mhf_backend->empty_table;
+# $t->app->mhf_backend->drop_table;
+# $path->remove_tree;
