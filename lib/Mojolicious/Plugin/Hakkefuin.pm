@@ -406,12 +406,12 @@ if option C<via> is not specified).
 
   # Mojolicious
   $self->plugin('Hakkefuin' => {
-    dir => 'your-custon-dirname-here'
+    dir => 'your-custom-dirname-here'
   });
 
   # Mojolicious Lite
   plugin 'Hakkefuin' => {
-    dir => 'your-custon-dirname-here'
+    dir => 'your-custom-dirname-here'
   };
 
 Specified directory for L<Mojolicious::Plugin::Hakkefuin> configure files.
@@ -567,7 +567,7 @@ Achmad Yusri Afandi, C<yusrideb@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2020 by Achmad Yusri Afandi
+Copyright (C) 2025 by Achmad Yusri Afandi
 
 This program is free software, you can redistribute it and/or modify it
 under the terms of the Artistic License version 2.0.
