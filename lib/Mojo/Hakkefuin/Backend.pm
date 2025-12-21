@@ -6,7 +6,8 @@ use Mojo::Hakkefuin::Utils;
 
 has 'dsn';
 has 'dir';
-has mhf_util => 'Mojo::Hakkefuin::Utils';
+has mhf_util    => 'Mojo::Hakkefuin::Utils';
+has table_ready => 0;
 
 # table structure
 has table_name  => 'mojo_hakkefuin';
@@ -25,6 +26,17 @@ sub check_table  { croak 'Method "check_table" not implemented by subclass' }
 sub create_table { croak 'Method "create_table" not implemented by subclass' }
 sub empty_table  { croak 'Method "empty_table" not implemented by subclass' }
 sub drop_table   { croak 'Method "drop_table" not implemented by subclass' }
+
+sub _table_ok {
+  my $self = shift;
+
+  return 1 if $self->table_ready;
+
+  my $check = $self->check_table;
+  my $ready = $check && $check->{result} ? 1 : 0;
+  $self->table_ready($ready);
+  return $ready;
+}
 
 # data interaction
 sub create        { croak 'Method "create" not implemented by subclass' }

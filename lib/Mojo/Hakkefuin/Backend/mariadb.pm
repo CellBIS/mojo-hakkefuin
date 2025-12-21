@@ -74,8 +74,7 @@ sub table_query {
 sub create {
   my ($self, $identify, $cookie, $csrf, $expires) = @_;
 
-  return {result => 0, code => 500, data => $cookie}
-    unless $self->check_table->{result};
+  return {result => 0, code => 500, data => $cookie} unless $self->_table_ok;
 
   my $result = {result => 0, code => 400, data => $cookie};
 
@@ -108,8 +107,7 @@ sub read {
   $identify //= 'null';
   $cookie   //= 'null';
 
-  return {result => 0, code => 500, data => $cookie}
-    unless $self->check_table->{result};
+  return {result => 0, code => 500, data => $cookie} unless $self->_table_ok;
 
   my $result = {result => 0, code => 400, data => $cookie};
   my @q      = (
@@ -131,7 +129,7 @@ sub update {
   my $now_time  = $mhf_utils->sql_datetime(0);
 
   return {result => 0, code => 500, csrf => $csrf, cookie => $cookie}
-    unless $self->check_table->{result};
+    unless $self->_table_ok;
 
   my $result = {result => 0, code => 400, csrf => $csrf, cookie => $cookie};
   return $result unless $id && $csrf;
@@ -154,8 +152,7 @@ sub update_csrf {
   my $mhf_utils = $self->mhf_util->new;
   my $now_time  = $mhf_utils->sql_datetime(0);
 
-  return {result => 0, code => 500, data => $csrf}
-    unless $self->check_table->{result};
+  return {result => 0, code => 500, data => $csrf} unless $self->_table_ok;
 
   my $result = {result => 0, code => 400, data => $csrf};
   return $result unless $id && $csrf;
@@ -178,8 +175,7 @@ sub update_cookie {
   my $mhf_utils = $self->mhf_util->new;
   my $now_time  = $mhf_utils->sql_datetime(0);
 
-  return {result => 0, code => 500, data => $cookie}
-    unless $self->check_table->{result};
+  return {result => 0, code => 500, data => $cookie} unless $self->_table_ok;
 
   my $result = {result => 0, code => 400, data => $cookie};
   return $result unless $id && $cookie;
@@ -199,8 +195,7 @@ sub update_cookie {
 sub delete {
   my ($self, $identify, $cookie) = @_;
 
-  return {result => 0, code => 500, data => $cookie}
-    unless $self->check_table->{result};
+  return {result => 0, code => 500, data => $cookie} unless $self->_table_ok;
 
   my $result = {result => 0, code => 400, data => $cookie};
   return $result unless $identify && $cookie;
@@ -218,8 +213,7 @@ sub delete {
 sub check {
   my ($self, $identify, $cookie) = @_;
 
-  return {result => 0, code => 500, data => $cookie}
-    unless $self->check_table->{result};
+  return {result => 0, code => 500, data => $cookie} unless $self->_table_ok;
 
   my $result = {result => 0, code => 400, data => $cookie};
   return $result unless $identify && $cookie;
@@ -273,6 +267,7 @@ sub drop_table {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
     $result->{data}   = '';
+    $self->table_ready(0);
   }
   return $result;
 }
