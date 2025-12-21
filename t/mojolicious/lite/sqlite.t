@@ -5,6 +5,7 @@ use Mojolicious::Lite;
 use Mojo::Util 'secure_compare';
 use Mojo::File;
 use Test::Mojo;
+use IO::Socket::INET;
 
 # Home Dir
 my $home = app->home->detect;
@@ -77,7 +78,17 @@ post '/logout' => sub ($c) {
 };
 
 # Authentication Testing
-my $t = Test::Mojo->new;
+my $probe = IO::Socket::INET->new(
+  LocalAddr => '127.0.0.1',
+  LocalPort => 0,
+  Proto     => 'tcp',
+  Listen    => 1
+);
+plan skip_all => 'listen not permitted in this environment' unless $probe;
+$probe->close;
+
+my $t = eval { Test::Mojo->new };
+plan skip_all => "listen not permitted: $@" unless $t;
 $t->ua->max_redirects(1);
 
 # Main page
