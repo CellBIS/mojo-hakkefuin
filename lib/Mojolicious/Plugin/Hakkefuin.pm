@@ -28,8 +28,9 @@ has cookies_lock => sub {
     random => 'String::Random'
   );
 };
-has random => 'String::Random';
-has crand  => sub { state $crand = CellBIS::Random->new };
+has random          => 'String::Random';
+has crand           => sub { state $crand = CellBIS::Random->new };
+has session_manager => sub {undef};
 
 sub register {
   my ($self, $app, $conf) = @_;
@@ -97,6 +98,11 @@ sub register {
   push @mhf_params, dsn => $conf->{dsn} if $conf->{dsn};
   my $mhf = $self->mojo_hf->new(@mhf_params);
 
+  # Build shared sessions manager once
+  my $sessions = $self->session_manager
+    //= Mojo::Hakkefuin::Sessions->new(%{$conf->{session}});
+  $sessions->max_age(1) if $sessions->can('max_age');
+
   # Check Database Migration
   $mhf->check_file_migration();
   $mhf->check_migration();
@@ -107,8 +113,9 @@ sub register {
   $app->hook(
     after_build_tx => sub {
       my ($tx, $c) = @_;
-      $c->sessions(Mojo::Hakkefuin::Sessions->new(%{$conf->{session}}));
-      $c->sessions->max_age(1) if $c->sessions->can('max_age');
+
+      # Reuse shared sessions object to avoid per-request allocation
+      $c->sessions($sessions) unless $c->sessions && $c->sessions == $sessions;
     }
   );
 
