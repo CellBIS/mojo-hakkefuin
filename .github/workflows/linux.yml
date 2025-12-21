@@ -68,6 +68,9 @@ jobs:
           cpanm -n --installdeps .
           cpanm -n Test::Pod Test::Pod::Coverage TAP::Formatter::GitHubActions
 
+      - name: Install DB drivers
+        run: cpanm -n Mojo::mysql DBD::MariaDB Mojo::Pg DBD::Pg
+
       - name: Build XS
         run: |
           perl Makefile.PL
@@ -82,7 +85,7 @@ jobs:
             echo "Waiting for databases to be ready..."
             sleep 2
           done
-          prove --merge --formatter TAP::Formatter::GitHubActions -b t
+          prove --merge --formatter TAP::Formatter::GitHubActions -br t
         env:
           TEST_POD: 1
           TEST_ONLINE_mariadb: mariadb://mhf_test:mhftest123@127.0.0.1:53306/mhf_test
