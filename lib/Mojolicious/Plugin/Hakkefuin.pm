@@ -29,7 +29,7 @@ has cookies_lock => sub {
   );
 };
 has random => 'String::Random';
-has crand  => 'CellBIS::Random';
+has crand  => sub { state $crand = CellBIS::Random->new };
 
 sub register {
   my ($self, $app, $conf) = @_;
@@ -203,7 +203,7 @@ sub _csrf {
   # Generate CSRF Token if not exists
   unless ($c->session($conf->{'csrf.name'})) {
     my $cook = $self->utils->gen_cookie(3);
-    my $csrf = $self->crand->new->random($cook, 2, 3);
+    my $csrf = $self->crand->random($cook, 2, 3);
 
     $c->session($conf->{'csrf.name'} => $csrf);
     $c->res->headers->append((uc $conf->{'csrf.name'}) => $csrf);
@@ -214,7 +214,7 @@ sub _csrfreset {
   my ($self, $conf, $mhf, $c, $id) = @_;
 
   my $coon = $self->utils->gen_cookie(3);
-  my $csrf = $self->crand->new->random($coon, 2, 3);
+  my $csrf = $self->crand->random($coon, 2, 3);
 
   my $result = $mhf->backend->update_csrf($id, $csrf) if $id;
 

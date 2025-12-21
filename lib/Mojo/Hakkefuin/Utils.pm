@@ -7,7 +7,7 @@ use String::Random;
 sub gen_cookie {
   my ($self, $num) = @_;
   $num //= 3;
-  my $random = String::Random->new;
+  state $random = String::Random->new;
   $random->randpattern('CnCCcCCnCn' x $num);
 }
 
