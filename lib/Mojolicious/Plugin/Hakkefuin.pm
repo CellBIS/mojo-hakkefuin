@@ -99,9 +99,12 @@ sub register {
   my $mhf = $self->mojo_hf->new(@mhf_params);
 
   # Build shared sessions manager once
-  my $sessions = $self->session_manager
-    //= Mojo::Hakkefuin::Sessions->new(%{$conf->{session}});
-  $sessions->max_age(1) if $sessions->can('max_age');
+  my $sessions = $self->session_manager;
+  unless ($sessions) {
+    $sessions = Mojo::Hakkefuin::Sessions->new(%{$conf->{session}});
+    $sessions->max_age(1) if $sessions->can('max_age');
+    $self->session_manager($sessions);
+  }
 
   # Check Database Migration
   $mhf->check_file_migration();
