@@ -35,6 +35,7 @@ sub check_table {
   if (my $dbh = $self->pg->db->query($q)) {
     $result->{result} = $dbh->hash;
     $result->{code}   = 200;
+    eval { $self->_ensure_indexes };
   }
 
   return $result;
@@ -49,8 +50,36 @@ sub create_table {
   if (my $dbh = $self->pg->db->query($table_query)) {
     $result->{result} = $dbh->rows;
     $result->{code}   = 200;
+    eval { $self->_ensure_indexes };
   }
   return $result;
+}
+
+sub _ensure_indexes {
+  my $self = shift;
+
+  my $table   = $self->table_name;
+  my @idx_sql = (
+    'CREATE INDEX IF NOT EXISTS idx_'
+      . $table
+      . '_identify ON '
+      . $table . ' ('
+      . $self->identify . ')',
+    'CREATE INDEX IF NOT EXISTS idx_'
+      . $table
+      . '_cookie ON '
+      . $table . ' ('
+      . $self->cookie . ')',
+    'CREATE INDEX IF NOT EXISTS idx_'
+      . $table
+      . '_expire_date ON '
+      . $table . ' ('
+      . $self->expire_date . ')',
+  );
+
+  for my $sql (@idx_sql) {
+    eval { $self->pg->db->query($sql) };
+  }
 }
 
 sub table_query {
