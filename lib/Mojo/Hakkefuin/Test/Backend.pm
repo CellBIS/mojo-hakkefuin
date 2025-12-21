@@ -10,7 +10,7 @@ has 'via';
 
 # Internal Attributes :
 has 'backend';
-has 'crand';
+has crand => sub { state $cr = CellBIS::Random->new };
 has utils => sub {
   state $utils = Mojo::Hakkefuin::Utils->new(random => 'String::Random');
 };
@@ -38,7 +38,7 @@ sub new {
   my $load  = load_class $class;
   croak ref $load ? $load : qq{Backend "$class" missing} if $load;
   $self->backend($class->new(@param));
-  $self->crand('CellBIS::Random');
+  $self->crand(CellBIS::Random->new);
 
   return $self;
 }
@@ -65,7 +65,7 @@ sub example_data {
   my ($self, $identify) = @_;
 
   my $cook = $self->utils->gen_cookie(3);
-  my $csrf = $self->crand->new->random($cook, 2, 3);
+  my $csrf = $self->crand->random($cook, 2, 3);
 
   my $cookie_val
     = Mojo::Util::hmac_sha1_sum($self->utils->gen_cookie(5), $csrf);
