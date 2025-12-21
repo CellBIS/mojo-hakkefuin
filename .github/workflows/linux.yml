@@ -8,6 +8,34 @@ on:
 jobs:
   perl:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: rootpw
+          MARIADB_DATABASE: mhf_test
+          MARIADB_USER: mhf_test
+          MARIADB_PASSWORD: mhftest123
+        ports:
+          - 53306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -prootpw"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: mhf_test
+          POSTGRES_PASSWORD: mhftest123
+          POSTGRES_DB: mhf_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U mhf_test -d mhf_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     strategy:
       fail-fast: false
       matrix:
@@ -46,6 +74,16 @@ jobs:
           perl -MConfig -e 'system($Config{make}) == 0 or die "$Config{make} failed";'
 
       - name: Run tests
-        run: prove --merge --formatter TAP::Formatter::GitHubActions -b t
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y mariadb-client postgresql-client
+          for i in {1..30}; do
+            (mysqladmin ping -h 127.0.0.1 -P 53306 -umhf_test -pmhftest123 && pg_isready -h 127.0.0.1 -p 5432 -U mhf_test) && break
+            echo "Waiting for databases to be ready..."
+            sleep 2
+          done
+          prove --merge --formatter TAP::Formatter::GitHubActions -b t
         env:
           TEST_POD: 1
+          TEST_ONLINE_mariadb: mariadb://mhf_test:mhftest123@127.0.0.1:53306/mhf_test
+          TEST_ONLINE_pg: postgresql://mhf_test:mhftest123@127.0.0.1:5432/mhf_test
