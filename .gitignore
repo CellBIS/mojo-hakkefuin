@@ -7,6 +7,7 @@ _*
 !.appveyor.cmd
 !.appveyor.yml
 !.perltidyrc
+!.vstags
 !old-travis.yml
 /blib
 /pm_to_blib
