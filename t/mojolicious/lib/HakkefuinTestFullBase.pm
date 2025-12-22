@@ -38,6 +38,7 @@ sub startup {
     ->name('login_custom_action');
   $r->get('/csrf-reset')->to('auth#csrf_reset');
   $r->get('/auth-update')->to('auth#update');
+  $r->get('/auth-update-custom')->to('auth#update_custom');
   $r->get('/stash')->to('auth#stash_check');
   $r->post('/logout')->to('auth#logout');
   $r->post('/lock')->to('auth#lock');

@@ -89,6 +89,24 @@ sub update {
   $c->render(text => $data_result);
 }
 
+sub update_custom {
+  my $c = shift;
+
+  my %opts;
+  for my $key (qw(c_time s_time cl_time)) {
+    my $val = $c->param($key);
+    $opts{$key} = $val if defined $val && $val ne '';
+  }
+
+  my $data_result = 'can\'t update auth';
+  my $result      = $c->mhf_has_auth();
+  if ($result->{result} == 1) {
+    my $do_reset = $c->mhf_auth_update($c->stash('mhf.backend-id'), \%opts);
+    $data_result = 'success update auth custom' if ($do_reset->{code} == 200);
+  }
+  $c->render(text => $data_result);
+}
+
 sub stash_check {
   my $c = shift;
   my $check_stash

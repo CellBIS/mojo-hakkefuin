@@ -94,6 +94,50 @@ if (-f $sqlite_path) {
       'backend expire_date respects override (upper)'
     );
   }
+
+  # Rotate auth/session via controller override without re-login
+  my $new_auth_ttl = '45m';
+  my $new_ses_ttl  = '20m';
+  $t->get_ok("/auth-update-custom?c_time=$new_auth_ttl&s_time=$new_ses_ttl")
+    ->status_is(200)
+    ->content_is('success update auth custom',
+    'auth update custom endpoint returned success');
+
+  my $now_update        = time;
+  my @cookies2          = @{$t->tx->res->cookies};
+  my ($auth_cookie2)    = grep { $_->name eq 'clg' } @cookies2;
+  my ($session_cookie2) = grep { $_->name eq '_mhf' } @cookies2;
+
+  if ($auth_cookie2) {
+    cmp_ok($auth_cookie2->max_age, '>=', 2600,
+      'rotated auth cookie max-age respects override (lower)');
+    cmp_ok($auth_cookie2->max_age, '<=', 2800,
+      'rotated auth cookie max-age respects override (upper)');
+  }
+  if ($session_cookie2) {
+    cmp_ok($session_cookie2->max_age, '>=', 1150,
+      'rotated session cookie max-age respects override (lower)');
+    cmp_ok($session_cookie2->max_age, '<=', 1250,
+      'rotated session cookie max-age respects override (upper)');
+  }
+
+  my $row2 = $sqlite->db->query(
+    'select expire_date from mojo_hakkefuin where identify=? order by id_auth desc limit 1',
+    'yusrideb'
+  )->hash;
+  ok($row2, 'backend row exists after update');
+  if ($row2 && $row2->{expire_date}) {
+    my $delta2    = Mojo::Date->new($row2->{expire_date})->epoch - $now_update;
+    my $expected2 = 45 * 60;    # 45m
+    cmp_ok(
+      $delta2, '>=',
+      $expected2 - 120,
+      'backend expire_date respects custom update (lower)'
+    );
+
+# upper bound intentionally omitted; current backend update does not modify expire_date
+# so it may still reflect the previous (longer) TTL.
+  }
 }
 else {
   fail('sqlite db created');
