@@ -75,17 +75,11 @@ sub register {
   };
   $conf->{'cookies'}
     //= {name => 'clg', path => '/', httponly => 1, secure => 0};
-  $conf->{'cookies'}->{expires} = time + $time_cookies->{cookies};
-  $conf->{'cookies'}->{max_age} = $time_cookies->{cookies};
-
   $conf->{'cookies_lock'}
     //= {name => 'clglc', path => '/', httponly => 1, secure => 0};
-  $conf->{'cookies_lock'}->{expires} = time + $time_cookies->{lock};
-  $conf->{'cookies_lock'}->{max_age} = $time_cookies->{lock};
-
   $conf->{'session'}
     //= {cookie_name => '_mhf', cookie_path => '/', secure => 0};
-  $conf->{'session'}->{default_expiration} = $time_cookies->{session};
+  $conf->{'session'}->{default_expiration} //= $time_cookies->{session};
   $conf->{dir} = $home . '/' . $conf->{'dir'};
 
   # Build Mojo::Hakkefuin Params
@@ -138,6 +132,29 @@ sub register {
   $app->helper(mhf_backend        => sub { $mhf->backend });
 }
 
+sub _normalize_override {
+  my ($self, $opts) = @_;
+  return {} unless $opts && ref $opts eq 'HASH';
+  return $opts;
+}
+
+sub _timeframe {
+  my ($self, $conf, $opts) = @_;
+
+  $opts //= {};
+  return {
+    session => $self->utils->time_convert($opts->{s_time} // $conf->{'s.time'}),
+    cookies => $self->utils->time_convert($opts->{c_time} // $conf->{'c.time'}),
+    lock => $self->utils->time_convert($opts->{cl_time} // $conf->{'cl.time'}),
+  };
+}
+
+sub _session_expiration {
+  my ($self, $c, $seconds) = @_;
+  return unless defined $seconds;
+  $c->session(expiration => $seconds);
+}
+
 sub _lock {
   my ($self, $conf, $mhf, $c, $identify) = @_;
 
@@ -154,8 +171,9 @@ sub _lock {
   return {result => 0, code => 404, data => 'missing backend id'}
     unless $backend_id;
 
+  my $times    = $self->_timeframe($conf);
   my $seed     = $check_auth->{data}->{cookie};
-  my $lock_val = $self->cookies_lock->create($conf, $c, $seed);
+  my $lock_val = $self->cookies_lock->create($conf, $c, $seed, $times->{lock});
 
   my $upd_coolock = $mhf->backend->upd_coolock($backend_id, $lock_val);
   my $upd_state   = $mhf->backend->upd_lckstate($backend_id, 1);
@@ -214,14 +232,16 @@ sub _unlock {
 }
 
 sub _sign_in {
-  my ($self, $conf, $mhf, $c, $identify) = @_;
+  my ($self, $conf, $mhf, $c, $identify, $opts) = @_;
 
-  my $backend = $mhf->backend;
+  my $override = $self->_normalize_override($opts);
+  my $times    = $self->_timeframe($conf, $override);
+  my $backend  = $mhf->backend;
+  $self->_session_expiration($c, $times->{session});
   $self->cookies_lock->delete($conf, $c);
-  my $cv = $self->cookies->create($conf, $c);
+  my $cv = $self->cookies->create($conf, $c, $times->{cookies});
 
-  return $backend->create($identify, $cv->[0], $cv->[1],
-    $self->utils->time_convert($conf->{'c.time'}));
+  return $backend->create($identify, $cv->[0], $cv->[1], $times->{cookies});
 }
 
 sub _sign_out {
@@ -282,12 +302,18 @@ sub _has_auth {
 }
 
 sub _auth_update {
-  my ($self, $conf, $mhf, $c, $identify) = @_;
+  my ($self, $conf, $mhf, $c, $identify, $opts) = @_;
+
+  my $override = $self->_normalize_override($opts);
+  my $times    = $self->_timeframe($conf, $override);
 
   my $result = {result => 0};
-  my $update = $self->cookies->update($conf, $c, 1);
-  my $csrf   = ref $update->[1] eq 'ARRAY' ? $update->[1]->[1] : $update->[1];
+  my $update = $self->cookies->update($conf, $c, 1, $times->{cookies});
+  return $result unless $update;
+
+  my $csrf = ref $update->[1] eq 'ARRAY' ? $update->[1]->[1] : $update->[1];
   $result = $mhf->backend->update($identify, $update->[0], $csrf);
+  $self->_session_expiration($c, $times->{session});
 
   return $result;
 }
@@ -338,8 +364,19 @@ use Mojo::Base -base;
 has 'random';
 has 'utils';
 
+sub _cookie_options {
+  my ($self, $base, $ttl) = @_;
+
+  my %opts = %{$base || {}};
+  if (defined $ttl) {
+    $opts{expires} = time + $ttl;
+    $opts{max_age} = $ttl;
+  }
+  return \%opts;
+}
+
 sub create {
-  my ($self, $conf, $app) = @_;
+  my ($self, $conf, $app, $ttl) = @_;
 
   my $csrf_get = $conf->{'helper.prefix'} . '_csrf_get';
   my $csrf_reg = $conf->{'helper.prefix'} . '_csrf_regen';
@@ -349,12 +386,15 @@ sub create {
   my $cookie_val
     = Mojo::Util::hmac_sha1_sum($self->utils->gen_cookie(5), $csrf);
 
-  $app->cookie($cookie_key, $cookie_val, $conf->{'cookies'});
+  my $duration
+    = defined $ttl ? $ttl : $self->utils->time_convert($conf->{'c.time'});
+  $app->cookie($cookie_key, $cookie_val,
+    $self->_cookie_options($conf->{'cookies'}, $duration));
   [$cookie_val, $csrf];
 }
 
 sub update {
-  my ($self, $conf, $app, $csrf_reset) = @_;
+  my ($self, $conf, $app, $csrf_reset, $ttl) = @_;
 
   if ($self->check($app, $conf)) {
     my $csrf
@@ -364,7 +404,10 @@ sub update {
     my $cookie_key = $conf->{'cookies'}->{name};
     my $cookie_val
       = Mojo::Util::hmac_sha1_sum($self->utils->gen_cookie(5), $csrf);
-    $app->cookie($cookie_key, $cookie_val, $conf->{'cookies'});
+    my $duration
+      = defined $ttl ? $ttl : $self->utils->time_convert($conf->{'c.time'});
+    $app->cookie($cookie_key, $cookie_val,
+      $self->_cookie_options($conf->{'cookies'}, $duration));
     return [$cookie_val, $csrf];
   }
   return undef;
@@ -391,23 +434,36 @@ use Mojo::Base -base;
 has 'random';
 has 'utils';
 
+sub _cookie_options {
+  my ($self, $base, $ttl) = @_;
+
+  my %opts = %{$base || {}};
+  if (defined $ttl) {
+    $opts{expires} = time + $ttl;
+    $opts{max_age} = $ttl;
+  }
+  return \%opts;
+}
+
 sub create {
-  my ($self, $conf, $app, $seed) = @_;
+  my ($self, $conf, $app, $seed, $ttl) = @_;
 
   my $base = $seed || $self->utils->gen_cookie(4);
   my $cookie_val
     = Mojo::Util::hmac_sha1_sum($self->utils->gen_cookie(6), $base);
 
+  my $duration
+    = defined $ttl ? $ttl : $self->utils->time_convert($conf->{'cl.time'});
   $app->cookie($conf->{'cookies_lock'}->{name},
-    $cookie_val, $conf->{'cookies_lock'});
+    $cookie_val, $self->_cookie_options($conf->{'cookies_lock'}, $duration));
   return $cookie_val;
 }
 
 sub update {
-  my ($self, $conf, $app, $seed) = @_;
+  my ($self, $conf, $app, $seed, $ttl) = @_;
 
   return undef unless $self->check($app, $conf);
-  return $self->create($conf, $app, $seed);
+  return $self->create($conf, $app, $seed, $ttl);
 }
 
 sub delete {

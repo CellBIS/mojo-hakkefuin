@@ -14,8 +14,8 @@ sub gen_cookie {
 sub sql_datetime {
   my ($self, $time_plus) = @_;
   $time_plus //= 0;
-  my $epoch     = Mojo::Date->new(scalar localtime)->epoch;
-  my $to_get_dt = Mojo::Date->new($epoch + $time_plus)->to_datetime;
+  my $epoch     = time + $time_plus;
+  my $to_get_dt = Mojo::Date->new($epoch)->to_datetime;
   $to_get_dt =~ qr/^([0-9\-]+)\w([0-9\:]+)(.*)/;
   return $1 . ' ' . $2;
 }
