@@ -1,7 +1,6 @@
 package Mojo::Hakkefuin::Backend::sqlite;
 use Mojo::Base 'Mojo::Hakkefuin::Backend';
 
-use Mojo::Util qw(dumper);
 use Mojo::SQLite;
 use CellBIS::SQL::Abstract;
 

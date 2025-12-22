@@ -2,10 +2,7 @@ package Mojo::Hakkefuin;
 use Mojo::Base -base;
 
 use Carp 'croak';
-use File::Spec::Functions 'file_name_is_absolute';
-use Scalar::Util qw(blessed weaken);
 use Mojo::File qw(path);
-use Mojo::Util qw(dumper);
 use Mojo::Loader 'load_class';
 use String::Random;
 use CellBIS::SQL::Abstract;
