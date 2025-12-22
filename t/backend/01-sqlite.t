@@ -8,6 +8,7 @@ my ($btest,        $db,          $backend,   $id);
 my ($data,         $data_create, $data_read, $data_update);
 my ($data_cookies, $data_csrf);
 my ($result,       $r_create, $r_update, $r_delete);
+my $expires = 3600;
 
 my $home = Mojo::Home->new();
 my $path = $home->child(qw(t backend migrations));
@@ -31,13 +32,14 @@ is $backend->drop_table->{code},    200,   'drop table';
 note 'error condition when create data';
 $data_create = $btest->example_data($data);
 $result      = {result => 0, code => 500, data => $data_create->[1]};
-is_deeply $backend->create($data, $data_create->[1], $data_create->[2]),
-  $result, "can't create data";
+is_deeply $backend->create($data, $data_create->[1], $data_create->[2],
+  $expires), $result, "can't create data";
 
 note 'create data';
 $backend->create_table;
-$r_create = $backend->create($data, $data_create->[1], $data_create->[2]);
-$result   = {result => 1, code => 200, data => $data_create->[1]};
+$r_create
+  = $backend->create($data, $data_create->[1], $data_create->[2], $expires);
+$result = {result => 1, code => 200, data => $data_create->[1]};
 is_deeply $r_create, $result, 'create data';
 
 note 'read data';
@@ -79,6 +81,33 @@ $data_csrf   = $data_update->[2];
 $r_update    = $backend->update_csrf($data_read->{$backend->id}, $data_csrf);
 $result      = {result => 1, code => 200, data => $data_csrf};
 is_deeply $r_update, $result, 'update csrf success';
+
+note 'lock and unlock state';
+$data_read = $backend->read($data, $data_cookies)->{data};
+my $lock_cookie = 'lock_cookie_test';
+$r_update = $backend->upd_coolock($data_read->{$backend->id}, $lock_cookie);
+$result   = {result => 1, code => 200, data => $lock_cookie};
+is_deeply $r_update, $result, 'update lock cookie success';
+
+$r_update = $backend->upd_lckstate($data_read->{$backend->id}, 1);
+$result   = {result => 1, code => 200, data => 1};
+is_deeply $r_update, $result, 'update lock state success';
+
+$data_read = $backend->read($data, $data_cookies)->{data};
+is $data_read->{$backend->lock},        1,            'lock state saved';
+is $data_read->{$backend->cookie_lock}, $lock_cookie, 'lock cookie saved';
+
+$r_update = $backend->upd_coolock($data_read->{$backend->id}, 'no_lock');
+$result   = {result => 1, code => 200, data => 'no_lock'};
+is_deeply $r_update, $result, 'reset lock cookie success';
+
+$r_update = $backend->upd_lckstate($data_read->{$backend->id}, 0);
+$result   = {result => 1, code => 200, data => 0};
+is_deeply $r_update, $result, 'reset lock state success';
+
+$data_read = $backend->read($data, $data_cookies)->{data};
+is $data_read->{$backend->lock},        0,         'lock state cleared';
+is $data_read->{$backend->cookie_lock}, 'no_lock', 'lock cookie cleared';
 
 note 'delete data';
 $r_delete = $backend->delete($data, $data_read->{$backend->cookie});
