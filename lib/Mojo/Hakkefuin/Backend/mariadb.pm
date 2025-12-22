@@ -11,7 +11,8 @@ has abstract => sub { state $abstract = CellBIS::SQL::Abstract->new };
 sub new {
   my $self = shift->SUPER::new(@_);
 
-  $self->file_migration($self->dir . '/mhf_mariadb.sql');
+  my $dir = $self->dir // '';
+  $self->file_migration(($dir ? $dir . '/' : '') . 'mhf_mariadb.sql');
   my $class = 'Mojo::mysql';
   load_class $class;
   $self->mariadb($class->new($self->dsn()));
