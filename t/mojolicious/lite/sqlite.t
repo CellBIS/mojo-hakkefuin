@@ -67,6 +67,20 @@ get '/stash' => sub ($c) {
   $c->render(text => $check_stash);
 };
 
+post '/lock' => sub ($c) {
+  my $result = $c->mhf_lock();
+  my $text   = $result->{result} == 1 ? 'locked'
+    : $result->{result} == 2          ? 'already locked'
+    : 'lock failed';
+  $c->render(text => $text);
+};
+
+post '/unlock' => sub ($c) {
+  my $result = $c->mhf_unlock();
+  my $text   = $result->{result} == 1 ? 'unlocked' : 'unlock failed';
+  $c->render(text => $text);
+};
+
 post '/logout' => sub ($c) {
   my $check_auth = $c->mhf_has_auth();
   if ($check_auth->{'code'} == 200) {
@@ -118,6 +132,20 @@ $t->get_ok('/csrf-reset')
   ->content_is('success reset', 'CSRF reset success');
 
 # Page with Authenticated
+$t->get_ok('/page')->status_is(200)->content_is('page', 'Authenticated page');
+
+# Lock session
+$t->post_ok('/lock')->status_is(200)->content_is('locked', 'Session locked');
+
+# Page should be blocked while locked
+$t->get_ok('/page')->status_is(200)
+  ->content_is('Unauthenticated', 'Locked session is blocked');
+
+# Unlock session
+$t->post_ok('/unlock')->status_is(200)
+  ->content_is('unlocked', 'Session unlocked');
+
+# Page with Authenticated after unlock
 $t->get_ok('/page')->status_is(200)->content_is('page', 'Authenticated page');
 
 # Logout

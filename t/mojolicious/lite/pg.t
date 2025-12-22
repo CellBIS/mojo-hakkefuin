@@ -5,9 +5,37 @@ use Mojolicious::Lite;
 use Mojo::Util qw(secure_compare dumper);
 use Mojo::File;
 use Test::Mojo;
+use IO::Socket::UNIX;
+use IO::Socket::INET;
+use Socket qw(SOCK_STREAM);
+use Mojo::URL;
 
 plan skip_all => 'set TEST_ONLINE_pg to enable this test'
   unless $ENV{TEST_ONLINE_pg};
+
+my $dsn  = $ENV{TEST_ONLINE_pg};
+my $url  = Mojo::URL->new($dsn);
+my $sock = Mojo::File->new(__FILE__)->dirname->child('tmp', 'mojo-lite-pg.sock');
+$sock->dirname->make_path;
+my $listen_probe = IO::Socket::UNIX->new(
+  Type  => SOCK_STREAM(),
+  Local => $sock->to_string,
+  Listen => 1
+);
+plan skip_all => 'listen not permitted in this environment' unless $listen_probe;
+$listen_probe->close;
+unlink $sock->to_string if -S $sock->to_string;
+local $ENV{MOJO_LISTEN} = 'http+unix:' . $sock->to_string
+  unless $ENV{MOJO_LISTEN};
+
+my $net_probe = IO::Socket::INET->new(
+  PeerAddr => $url->host,
+  PeerPort => $url->port || 5432,
+  Proto    => 'tcp',
+  Timeout  => 2
+);
+plan skip_all => 'postgres socket not reachable' unless $net_probe;
+$net_probe->close;
 
 # User :
 my $USERS = {yusrideb => 's3cr3t'};
@@ -85,6 +113,22 @@ get '/stash' => sub {
   $c->render(text => $check_stash);
 };
 
+post '/lock' => sub {
+  my $c      = shift;
+  my $result = $c->mhf_lock();
+  my $text   = $result->{result} == 1 ? 'locked'
+    : $result->{result} == 2          ? 'already locked'
+    : 'lock failed';
+  $c->render(text => $text);
+};
+
+post '/unlock' => sub {
+  my $c      = shift;
+  my $result = $c->mhf_unlock();
+  my $text   = $result->{result} == 1 ? 'unlocked' : 'unlock failed';
+  $c->render(text => $text);
+};
+
 post '/logout' => sub {
   my $c = shift;
 
@@ -124,6 +168,20 @@ $t->get_ok('/csrf-reset')->status_is(200)
   ->content_is('success reset', 'CSRF reset success');
 
 # Page with Authenticated
+$t->get_ok('/page')->status_is(200)->content_is('page', 'Authenticated page');
+
+# Lock session
+$t->post_ok('/lock')->status_is(200)->content_is('locked', 'Session locked');
+
+# Page should be blocked while locked
+$t->get_ok('/page')->status_is(200)
+  ->content_is('Unauthenticated', 'Locked session is blocked');
+
+# Unlock session
+$t->post_ok('/unlock')->status_is(200)
+  ->content_is('unlocked', 'Session unlocked');
+
+# Page with Authenticated after unlock
 $t->get_ok('/page')->status_is(200)->content_is('page', 'Authenticated page');
 
 # Auth Update
