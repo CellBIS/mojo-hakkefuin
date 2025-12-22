@@ -8,6 +8,11 @@ use Mojo::Hakkefuin::Sessions;
 use Mojo::File;
 use IO::Socket::UNIX;
 use Socket qw(SOCK_STREAM);
+use Config;
+
+# Windows (and some builds) lack pack_sockaddr_un; skip to avoid runtime errors.
+plan skip_all => 'Unix sockets not available on this platform'
+  if $^O =~ /MSWin32/i || !$Config{d_sockaddr_un};
 
 # Prefer unix socket to avoid network restrictions
 my $sock = Mojo::File->new('t/tmp/sessions.sock');
