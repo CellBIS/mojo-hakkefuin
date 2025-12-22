@@ -1,4 +1,5 @@
-# Mojo::Plugin::Hakkefuin [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/linux/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions) [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/macos/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions) [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/windows/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions)
+# Mojolicious::Plugin::Hakkefuin
+[![](https://github.com/CellBIS/mojo-hakkefuin/workflows/linux/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions) [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/macos/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions) [![](https://github.com/CellBIS/mojo-hakkefuin/workflows/windows/badge.svg)](https://github.com/CellBIS/mojo-hakkefuin/actions)
 
 Mojolicious plugin for minimalistic authentication. It pairs an HMAC cookie with a server-side CSRF token stored in the database, keeps expirations enforceable from the backend, and ships an optional lock/unlock flow for "screen lock" style behavior.
 
