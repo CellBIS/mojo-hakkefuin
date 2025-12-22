@@ -227,6 +227,53 @@ sub update_cookie {
   return $result;
 }
 
+sub upd_coolock {
+  my ($self, $id, $cookie_lock) = @_;
+
+  my $mhf_utils = $self->mhf_util->new;
+  my $now_time  = $mhf_utils->sql_datetime(0);
+
+  return {result => 0, code => 500, data => $cookie_lock}
+    unless $self->_table_ok;
+
+  my $result = {result => 0, code => 400, data => $cookie_lock};
+  return $result unless $id && defined $cookie_lock;
+
+  my @q = (
+    $self->table_name,
+    {$self->cookie_lock => $cookie_lock},
+    {$self->id          => $id, $self->expire_date => {'>=', $now_time}}
+  );
+  if (my $dbh = $self->pg->db->update(@q)) {
+    $result->{result} = $dbh->rows;
+    $result->{code}   = 200;
+  }
+  return $result;
+}
+
+sub upd_lckstate {
+  my ($self, $id, $state) = @_;
+
+  my $mhf_utils = $self->mhf_util->new;
+  my $now_time  = $mhf_utils->sql_datetime(0);
+
+  return {result => 0, code => 500, data => $state} unless $self->_table_ok;
+
+  my $result = {result => 0, code => 400, data => $state};
+  return $result unless $id && defined $state;
+
+  my @q = (
+    $self->table_name,
+    {$self->lock => $state},
+    {$self->id   => $id, $self->expire_date => {'>=', $now_time}}
+  );
+  if (my $dbh = $self->pg->db->update(@q)) {
+    $result->{result} = $dbh->rows;
+    $result->{code}   = 200;
+  }
+  return $result;
+}
+
 sub delete {
   my ($self, $identify, $cookie) = @_;
 
