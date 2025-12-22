@@ -62,7 +62,7 @@ SKIP: {
   $btest->load_backend;
 
   $backend = $btest->backend;
-  $db      = $backend->mariadb->db  ;
+  $db      = $backend->mariadb->db;
 
   ok $db->ping, 'Use the keyword "mysql" to connect to MariaDB';
 }

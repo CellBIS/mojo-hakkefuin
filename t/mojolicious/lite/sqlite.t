@@ -69,9 +69,10 @@ get '/stash' => sub ($c) {
 
 post '/lock' => sub ($c) {
   my $result = $c->mhf_lock();
-  my $text   = $result->{result} == 1 ? 'locked'
-    : $result->{result} == 2          ? 'already locked'
-    : 'lock failed';
+  my $text
+    = $result->{result} == 1 ? 'locked'
+    : $result->{result} == 2 ? 'already locked'
+    :                          'lock failed';
   $c->render(text => $text);
 };
 
@@ -138,11 +139,13 @@ $t->get_ok('/page')->status_is(200)->content_is('page', 'Authenticated page');
 $t->post_ok('/lock')->status_is(200)->content_is('locked', 'Session locked');
 
 # Page should be blocked while locked
-$t->get_ok('/page')->status_is(200)
+$t->get_ok('/page')
+  ->status_is(200)
   ->content_is('Unauthenticated', 'Locked session is blocked');
 
 # Unlock session
-$t->post_ok('/unlock')->status_is(200)
+$t->post_ok('/unlock')
+  ->status_is(200)
   ->content_is('unlocked', 'Session unlocked');
 
 # Page with Authenticated after unlock
