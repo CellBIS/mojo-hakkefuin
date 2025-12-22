@@ -141,84 +141,22 @@ sub register {
 sub _lock {
   my ($self, $conf, $mhf, $c, $identify) = @_;
 
-  return {result => 0, code => 400, data => 'lock disabled'}
-    unless $conf->{lock};
-
   my $check_auth = $self->_has_auth($conf, $mhf, $c);
-  return $check_auth
-    if $check_auth->{result} == 0 || $check_auth->{result} == 3;
-  return {result => 2, code => 423, data => $check_auth->{data}}
-    if $check_auth->{result} == 2;    # already locked
-
-  my $backend_id = $c->stash($conf->{'stash.prefix'} . '.backend-id');
-  return {result => 0, code => 404, data => 'missing backend id'}
-    unless $backend_id;
-
-  my $seed     = $check_auth->{data}->{cookie};
-  my $lock_val = $self->cookies_lock->create($conf, $c, $seed);
-
-  my $upd_coolock = $mhf->backend->upd_coolock($backend_id, $lock_val);
-  my $upd_state   = $mhf->backend->upd_lckstate($backend_id, 1);
-
-  unless ($upd_coolock->{code} == 200 && $upd_state->{code} == 200) {
-    $self->cookies_lock->delete($conf, $c);
-    $mhf->backend->upd_coolock($backend_id, $check_auth->{data}->{cookie_lock})
-      if $check_auth->{data}->{cookie_lock};
-    return {result => 0, code => 500, data => 'failed to lock'};
-  }
-
-  my $result = {result => 1, code => 200, data => {lock => 1}};
-  $conf->{callback}->{lock}->($c, $result)
-    if ref $conf->{callback}->{lock} eq 'CODE';
-  return $result;
+  if ($check_auth->{result} == 1) { }
 }
 
 sub _unlock {
   my ($self, $conf, $mhf, $c, $identify) = @_;
 
-  return {result => 0, code => 400, data => 'lock disabled'}
-    unless $conf->{lock};
-
   my $check_auth = $self->_has_auth($conf, $mhf, $c);
-  return $check_auth
-    if $check_auth->{result} == 0 || $check_auth->{result} == 3;
-
-  my $backend_id = $c->stash($conf->{'stash.prefix'} . '.backend-id');
-  return {result => 0, code => 404, data => 'missing backend id'}
-    unless $backend_id;
-
-  my $lock_cookie = $self->cookies_lock->check($c, $conf);
-  my $stored_lock = $check_auth->{data}->{cookie_lock};
-
-  if ($check_auth->{result} == 1) {
-    $self->cookies_lock->delete($conf, $c);
-    return {result => 1, code => 200, data => {lock => 0}};
-  }
-  return {result => 0, code => 401, data => 'lock cookie missing'}
-    unless $lock_cookie && $stored_lock;
-  return {result => 0, code => 401, data => 'lock cookie mismatch'}
-    unless secure_compare $lock_cookie, $stored_lock;
-
-  my $upd_coolock = $mhf->backend->upd_coolock($backend_id, 'no_lock');
-  my $upd_state   = $mhf->backend->upd_lckstate($backend_id, 0);
-  $self->cookies_lock->delete($conf, $c);
-
-  unless ($upd_coolock->{code} == 200 && $upd_state->{code} == 200) {
-    return {result => 0, code => 500, data => 'failed to unlock'};
-  }
-
-  my $result = {result => 1, code => 200, data => {lock => 0}};
-  $conf->{callback}->{unlock}->($c, $result)
-    if ref $conf->{callback}->{unlock} eq 'CODE';
-  return $result;
+  if ($check_auth->{result} == 2) { }
 }
 
 sub _sign_in {
   my ($self, $conf, $mhf, $c, $identify) = @_;
 
   my $backend = $mhf->backend;
-  $self->cookies_lock->delete($conf, $c);
-  my $cv = $self->cookies->create($conf, $c);
+  my $cv      = $self->cookies->create($conf, $c);
 
   return $backend->create($identify, $cv->[0], $cv->[1],
     $self->utils->time_convert($conf->{'c.time'}));
@@ -230,7 +168,6 @@ sub _sign_out {
   # Session Destroy :
   $c->session(expires => 1);
 
-  $self->cookies_lock->delete($conf, $c);
   my $cookie = $self->cookies->delete($conf, $c);
   return $mhf->backend->delete($identify, $cookie);
 }
@@ -247,36 +184,14 @@ sub _has_auth {
   my $auth_check = $mhf->backend->check(1, $coo);
 
   if ($auth_check->{result} == 1) {
-    my $csrf_ok = secure_compare($auth_check->{data}->{csrf} // '',
-      $c->$csrf_get() // '');
-    if ($csrf_ok) {
-      my $locked = $conf->{lock} ? $auth_check->{data}->{lock} : 0;
-      if ($locked) {
-        my $lock_cookie = $c->cookie($conf->{cookies_lock}->{name});
-        my $match
-          = $lock_cookie
-          && $auth_check->{data}->{cookie_lock}
-          && secure_compare($lock_cookie, $auth_check->{data}->{cookie_lock});
-        $result = {
-          result      => 2,
-          code        => 423,
-          data        => $auth_check->{data},
-          lock_cookie => $match ? 1 : 0
-        };
-      }
-      else {
-        $result = {result => 1, code => 200, data => $auth_check->{data}};
-      }
-    }
-    else {
-      $result = {result => 3, code => 406, data => ''};
-    }
+    $result
+      = $auth_check->{data}->{csrf} eq $c->$csrf_get()
+      ? {result => 1, code => 200, data => $auth_check->{data}}
+      : {result => 3, code => 406, data => ''};
     $c->stash(
       $conf->{'stash.prefix'} . '.backend-id' => $auth_check->{data}->{id});
     $c->stash(
       $conf->{'stash.prefix'} . '.identify' => $auth_check->{data}->{identify});
-    $c->stash(
-      $conf->{'stash.prefix'} . '.lock_state' => $auth_check->{data}->{lock});
   }
   return $result;
 }
@@ -391,40 +306,6 @@ use Mojo::Base -base;
 has 'random';
 has 'utils';
 
-sub create {
-  my ($self, $conf, $app, $seed) = @_;
-
-  my $base = $seed || $self->utils->gen_cookie(4);
-  my $cookie_val
-    = Mojo::Util::hmac_sha1_sum($self->utils->gen_cookie(6), $base);
-
-  $app->cookie($conf->{'cookies_lock'}->{name},
-    $cookie_val, $conf->{'cookies_lock'});
-  return $cookie_val;
-}
-
-sub update {
-  my ($self, $conf, $app, $seed) = @_;
-
-  return undef unless $self->check($app, $conf);
-  return $self->create($conf, $app, $seed);
-}
-
-sub delete {
-  my ($self, $conf, $app) = @_;
-
-  if ($self->check($app, $conf)) {
-    $app->cookie($conf->{'cookies_lock'}->{name} => '', {expires => 1});
-    return 1;
-  }
-  return 0;
-}
-
-sub check {
-  my ($self, $app, $conf) = @_;
-  return $app->cookie($conf->{'cookies_lock'}->{name});
-}
-
 1;
 
 =encoding utf8
@@ -437,26 +318,28 @@ Mojolicious::Plugin::Hakkefuin - Mojolicious Web Authentication.
 
   # Mojolicious Lite
   plugin 'Hakkefuin' => {
-    'helper.prefix' => 'your_prefix_here',
+    'helper.prefix' => 'your_prefix_here_',
     'stash.prefix' => 'your_stash_prefix_here',
     'csrf.name' => 'your_csrf_name_here',
-    via => 'pg',
-    dir => 'your-dir-location-file-db',
+    via => 'mariadb',
+    dir => 'your-dir-location-file-db'
     'c.time' => '1w',
     's.time' => '1w',
+    'csrf.name' => 'mhf_csrf_token',
     'lock' => 1,
     'cl.time' => '60m'
   };
 
   # Mojolicious
   $self->plugin('Hakkefuin' => {
-    'helper.prefix' => 'your_prefix_here',
+    'helper.prefix' => 'your_prefix_here_',
     'stash.prefix' => 'your_stash_prefix_here',
     'csrf.name' => 'your_csrf_name_here',
-    via => 'pg',
-    dir => 'your-dir-location-file-db',
+    via => 'mariadb',
+    dir => 'your-dir-location-file-db'
     'c.time' => '1w',
     's.time' => '1w',
+    'csrf.name' => 'mhf_csrf_token',
     'lock' => 1,
     'cl.time' => '60m'
   });
@@ -480,7 +363,7 @@ Web Authentication. (Minimalistic and Powerful).
     'helper.prefix' => 'your_prefix_here'
   };
 
-To change prefix of all helpers. By default, C<helper.prefix> is C<mhf>.
+To change prefix of all helpers. By default, C<helper.prefix> is C<mhf_>.
 
 =head2 stash.prefix
 
@@ -494,7 +377,7 @@ To change prefix of all helpers. By default, C<helper.prefix> is C<mhf>.
     'stash.prefix' => 'your_stash_prefix_here'
   };
 
-To change prefix of stash. By default, C<stash.prefix> is C<mhf>.
+To change prefix of stash. By default, C<stash.prefix> is C<mhf_>.
 
 =head2 csrf.name
 
@@ -508,7 +391,7 @@ To change prefix of stash. By default, C<stash.prefix> is C<mhf>.
     'csrf.name' => 'your_csrf_name_here'
   };
 
-To change csrf name in session and HTTP Headers. By default, C<csrf.name>
+To change csrf name in session and HTTP Headers. By default, C<csrf.prefix>
 is C<mhf_csrf_token>.
 
 =head2 via
@@ -573,6 +456,20 @@ To set a cookie session expires time. By default is 1 week. For more
 information of the abbreviation for time C<c.time> and C<s.time> helper,
 see L<Mojo::Hakkefuin::Utils>.
 
+=head2 csrf.name
+
+  # Mojolicious
+  $self->plugin('Hakkefuin' => {
+    'csrf.name' => 'mhf_csrf_token'
+  });
+
+  # Mojolicious Lite
+  plugin 'Hakkefuin' => {
+    'csrf.name' => 'mhf_csrf_token'
+  };
+
+To set a cookie session expires time. By default is C<mhf_csrf_token>.
+
 =head2 lock
 
   # Mojolicious
@@ -587,8 +484,8 @@ see L<Mojo::Hakkefuin::Utils>.
 
 To set C<Lock Screen> feature. By default is 1 (enable). If you won't use
 that feature, you can give 0 (disable). This feature is additional
-authentication method, beside C<login> and C<logout>. When enabled a
-dedicated lock cookie is issued and tracked in the backend.
+authentication method, beside C<login> and C<logout>,
+that look like C<Lock Screen> in mobile phone.
 
 =head2 cl.time
 
@@ -602,26 +499,24 @@ dedicated lock cookie is issued and tracked in the backend.
     'cl.time' => '60m'
   };
 
-To set cookie lock expires time. By default is 60 minutes for the lock
-cookie used by C<mhf_lock>/C<mhf_unlock>.
+To set cookie lock expires time. By default is 60 minutes.
 
 =head1 HELPERS
 
-By default, prefix for all helpers using C<mhf>, but you can do change that
+By default, prefix for all helpers using C<mhf_>, but you can do change that
 with option C<helper.prefix>.
 
 =head2 mhf_lock
 
   $c->mhf_lock() # In the controllers
 
-Helper to lock the current authenticated session; sets lock cookie and
-marks backend as locked.
+Helper for action sign-in (login) web application.
 
 =head2 mhf_unlock
 
   $c->mhf_unlock(); # In the controllers
 
-Helper to unlock a locked session; clears lock cookie and unlocks backend.
+Helper for action sign-out (logout) web application.
 
 =head2 mhf_signin
 
@@ -634,12 +529,6 @@ Helper for action sign-in (login) web application.
   $c->mhf_signout('login-identify'); # In the controllers
 
 Helper for action sign-out (logout) web application.
-
-=head2 mhf_auth_update
-
-  $c->mhf_auth_update('login-identify'); # In the controllers
-
-Helper for rotating authentication cookie and CSRF token.
 
 =head2 mhf_has_auth
 
@@ -658,20 +547,7 @@ Helper for generate csrf;
 
   $c->mhf_csrf_val; # In the controllers
 
-Helper for comparing stored CSRF (session/header) and returning it when it
-matches.
-
-=head2 mhf_csrf_get
-
-  $c->mhf_csrf_get; # In the controllers
-
-Helper for retrieving the stored CSRF token.
-
-=head2 mhf_csrf_regen
-
-  $c->mhf_csrf_regen; # In the controllers
-
-Helper for regenerating CSRF token and returning the new value.
+Helper for validation that csrf from request routes.
 
 =head2 mhf_backend
 
