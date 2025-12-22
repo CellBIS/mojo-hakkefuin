@@ -1,14 +1,16 @@
 requires "Carp"                   => "0";
 requires "CellBIS::Random"        => "0";
 requires "CellBIS::SQL::Abstract" => "1.2";
-requires "File::Spec::Functions"  => "0";
 requires "Mojo::SQLite"           => "0";
 requires "Mojolicious"            => "0";
-requires "Scalar::Util"           => "0";
 requires "String::Random"         => "0";
 
-on 'build' => sub {
-  requires "Module::Build" => "0.28";
+feature 'mariadb', 'MariaDB/MySQL backend' => sub {
+  recommends "Mojo::mysql" => "0";
+};
+
+feature 'pg', 'PostgreSQL backend' => sub {
+  recommends "Mojo::Pg" => "0";
 };
 
 on 'test' => sub {
@@ -18,8 +20,7 @@ on 'test' => sub {
 };
 
 on 'configure' => sub {
-  requires "ExtUtils::MakeMaker" => "0";
-  requires "Module::Build"       => "0.28";
+  requires "ExtUtils::MakeMaker" => "7.12";
 };
 
 on 'develop' => sub {

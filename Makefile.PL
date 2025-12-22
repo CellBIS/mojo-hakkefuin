@@ -17,12 +17,8 @@ my %WriteMakefileArgs = (
     'Carp'                   => 0,
     'CellBIS::Random'        => 0,
     'CellBIS::SQL::Abstract' => '1.2',
-    'File::Spec::Functions'  => 0,
-    'Mojo::Pg'               => 0,
     'Mojo::SQLite'           => 0,
-    'Mojo::mysql'            => 0,
     'Mojolicious'            => 0,
-    'Scalar::Util'           => 0,
     'String::Random'         => 0,
   },
   TEST_REQUIRES => {
@@ -44,6 +40,16 @@ my %WriteMakefileArgs = (
       },
     },
     no_index => {directory => [qw(t test example)]},
+    optional_features => {
+      mariadb => {
+        description => 'MariaDB/MySQL backend support',
+        requires    => {'Mojo::mysql' => 0}
+      },
+      pg => {
+        description => 'PostgreSQL backend support',
+        requires    => {'Mojo::Pg' => 0}
+      },
+    },
   },
   test => {
     TESTS =>
