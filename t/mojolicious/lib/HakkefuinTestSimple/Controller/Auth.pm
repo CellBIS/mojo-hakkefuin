@@ -23,6 +23,27 @@ sub login {
   }
 }
 
+sub login_custom {
+  my $c = shift;
+
+  my $user = $c->param('user') || '';
+  my $pass = $c->param('pass') || '';
+  my %opts;
+  for my $key (qw(c_time s_time cl_time)) {
+    my $val = $c->param($key);
+    $opts{$key} = $val if defined $val && $val ne '';
+  }
+
+  if ($USERS->{$user} && secure_compare $USERS->{$user}, $pass) {
+    my $res = $c->mhf_signin($user, \%opts);
+    my $ok  = $res && ref $res eq 'HASH' ? $res->{code} : undef;
+    return $c->render(text => $ok
+        && $ok == 200 ? 'login success' : 'error login');
+  }
+
+  return $c->render(text => 'error user or pass');
+}
+
 sub csrf_reset {
   my $c = shift;
 

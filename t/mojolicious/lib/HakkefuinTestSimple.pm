@@ -15,6 +15,9 @@ sub startup {
   $r->get('/page')->to('page#page');
 
   $r->post('/login')->to('auth#login')->name('login_action');
+  $r->post('/login-custom')
+    ->to('auth#login_custom')
+    ->name('login_custom_action');
   $r->get('/csrf-reset')->to('auth#csrf_reset');
   $r->get('/auth-update')->to('auth#update');
   $r->get('/stash')->to('auth#stash_check');
