@@ -139,7 +139,7 @@ from the field table.
     $self->create_date,
     $self->expire_date,
     $self->cookie_lock,
-    $self->lock_state
+    $self->lock
   ];
 
 Now this attributes only used by method C<table_query>.

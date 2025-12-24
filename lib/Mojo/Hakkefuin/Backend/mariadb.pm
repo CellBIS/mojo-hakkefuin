@@ -360,16 +360,16 @@ Mojo::Hakkefuin::Backend::mariadb - MariaDB/MySQL Backend.
 =head1 SYNOPSIS
 
   use Mojo::Hakkefuin::Backend::mariadb;
-  
+
   my $mariadb = Mojo::Hakkefuin::Backend::mariadb->new(
     dir => 'path/your/dir/migrations',
     dsn => 'mariadb://username:password@hostname/database'
   );
-  
+
   # use as a method
   my $backend = $backend->dsn;
   $backend->dsn('mariadb://username:password@hostname:port/database');
-  
+
   # or
   $backend->dsn('mysql://username:password@hostname:port/database');
 
@@ -380,7 +380,7 @@ based on L<Mojo::Hakkefuin::Backend>. All necessary tables will be created autom
 
 =head1 ATTRIBUTES
 
-L<Mojo::Hakkefuin::Backend::mariadb> inherits all attributes from L<Mojolicious::Plugin::Hakkefuin>
+L<Mojo::Hakkefuin::Backend::mariadb> inherits all attributes from L<Mojo::Hakkefuin::Backend>
 and implements the following new ones.
 
 =head2 dsn
@@ -391,11 +391,11 @@ and implements the following new ones.
     dsn => 'mariadb://username:password@hostname:port/database',
     ...
   );
-  
+
   # use as a method
   my $backend = $backend->dsn;
   $backend->dsn('mariadb://username:password@hostname:port/database');
-  
+
   # or
   $backend->dsn('mysql://username:password@hostname:port/database');
 
@@ -409,7 +409,7 @@ This attribute for specify Data Source Name for DBMS MariaDB.
     dir => '/path/location/of/dir/migrations/',
     ...
   );
-  
+
   # use as a method
   my $backend = $backend->dir;
   $backend->dir('/path/location/of/dir/migrations/');
@@ -452,7 +452,7 @@ This method is used to create database table.
 
   $backend->empty_table;
   my $empty_table = $backend->empty_table;
-  
+
 This method is used to delete all database table
 (It means to delete all data in a table).
 

@@ -385,7 +385,7 @@ based on L<Mojo::Hakkefuin::Backend>. All necessary tables will be created autom
 
 =head1 ATTRIBUTES
 
-L<Mojo::Hakkefuin::Backend::pg> inherits all attributes from L<Mojolicious::Plugin::Hakkefuin>
+L<Mojo::Hakkefuin::Backend::pg> inherits all attributes from L<Mojo::Hakkefuin::Backend>
 and implements the following new ones.
 
 =head2 dsn

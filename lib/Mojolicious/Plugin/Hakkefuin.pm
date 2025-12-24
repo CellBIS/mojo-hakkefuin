@@ -491,31 +491,72 @@ Mojolicious::Plugin::Hakkefuin - Mojolicious Web Authentication.
 
 =head1 SYNOPSIS
 
-  # Mojolicious Lite
+Mojolicious::Lite example (SQLite default):
+
+  use Mojolicious::Lite;
+
   plugin 'Hakkefuin' => {
-    'helper.prefix' => 'your_prefix_here',
-    'stash.prefix' => 'your_stash_prefix_here',
-    'csrf.name' => 'your_csrf_name_here',
-    via => 'pg',
-    dir => 'your-dir-location-file-db',
-    'c.time' => '1w',
-    's.time' => '1w',
-    'lock' => 1,
-    'cl.time' => '60m'
+    'helper.prefix' => 'fuin',
+    'stash.prefix'  => 'fuin',
+    via             => 'sqlite',        # or mariadb / pg
+    dir             => 'migrations',
+    'c.time'        => '1w',            # auth cookie TTL
+    's.time'        => '1w',            # session TTL
+    'lock'          => 1,               # enable lock/unlock helpers
   };
 
-  # Mojolicious
-  $self->plugin('Hakkefuin' => {
-    'helper.prefix' => 'your_prefix_here',
-    'stash.prefix' => 'your_stash_prefix_here',
-    'csrf.name' => 'your_csrf_name_here',
-    via => 'pg',
-    dir => 'your-dir-location-file-db',
-    'c.time' => '1w',
-    's.time' => '1w',
-    'lock' => 1,
-    'cl.time' => '60m'
-  });
+  post '/login' => sub {
+    my $c   = shift;
+    my $id  = $c->param('user');
+    my $res = $c->fuin_signin($id);
+    return $c->render(status => $res->{code}, json => $res);
+  };
+
+  # Override cookie/session TTL per request
+  post '/login-custom' => sub {
+    my $c = shift;
+    my $res = $c->fuin_signin($c->param('user'), {c_time => '2h', s_time => '30m'});
+    return $c->render(status => $res->{code}, json => $res);
+  };
+
+  under sub {
+    my $c    = shift;
+    my $auth = $c->fuin_has_auth;         # checks cookie+csrf, stashes data
+    return $c->render(status => 423, json => $auth) if $auth->{result} == 2;
+    return $c->render(status => 401, text => 'Unauthorized')
+      unless $auth->{result} == 1;
+    $c->fuin_csrf;                        # ensure CSRF is in session/headers
+    return 1;
+  };
+
+  get '/me' => sub {
+    my $c = shift;
+    $c->render(json => {user => $c->stash('fuin.identify')});
+  };
+
+  # Rotate auth with custom TTLs without re-login
+  get '/auth-update-custom' => sub {
+    my $c   = shift;
+    my $bid = $c->stash('fuin.backend-id');
+    my $res = $c->fuin_auth_update($bid, {c_time => '45m', s_time => '20m'});
+    $c->render(status => $res->{code}, json => $res);
+  };
+
+  post '/logout' => sub {
+    my $c   = shift;
+    my $res = $c->fuin_signout($c->stash('fuin.identify'));
+    $c->render(status => $res->{code}, json => $res);
+  };
+
+  app->start;
+
+Mojolicious (non-Lite) menambahkan plugin di dalam C<startup>:
+
+  sub startup {
+    my $self = shift;
+    $self->plugin(Hakkefuin => { via => 'pg', dir => 'migrations/pg' });
+    ...
+  }
 
 =head1 DESCRIPTION
 

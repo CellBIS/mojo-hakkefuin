@@ -372,7 +372,7 @@ based on L<Mojo::Hakkefuin::Backend>. All necessary tables will be created autom
 
 =head1 ATTRIBUTES
 
-L<Mojo::Hakkefuin::Backend::sqlite> inherits all attributes from L<Mojolicious::Plugin::Hakkefuin>
+L<Mojo::Hakkefuin::Backend::sqlite> inherits all attributes from L<Mojo::Hakkefuin::Backend>
 and implements the following new ones.
 
 =head2 dir
@@ -393,7 +393,7 @@ SQLite database file or migrations configuration file.
 
 =head1 METHODS
 
-L<Mojo::Hakkefuin::Backend::mariadb> inherits all methods
+L<Mojo::Hakkefuin::Backend::sqlite> inherits all methods
 from L<Mojo::Hakkefuin::Backend> and implements the following new ones.
 In this module contains 2 section methods that is B<Table Interaction> and B<Data Interaction>.
 
