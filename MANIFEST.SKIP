@@ -22,6 +22,7 @@
 # Skip specific files
 (^|/)cpanfile\.snapshot$
 \.ini$
+(^|/)t/.*/migrations/.*\.db$
 
 # Skip development/support directories
 (^|/)\.vscode/
@@ -29,4 +30,5 @@
 (^|/)backup/
 (^|/)example/
 (^|/)test/
+(^|/)action/
 (^|/)old-travis\.yml$
