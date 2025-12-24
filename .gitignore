@@ -2,11 +2,8 @@
 *~
 _*
 !.github
-!.gitattributes
-!.gitignore
 !.appveyor.cmd
 !.appveyor.yml
-!.perltidyrc
 !.vstags
 !old-travis.yml
 /blib
