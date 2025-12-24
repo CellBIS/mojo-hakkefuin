@@ -121,3 +121,6 @@ done_testing();
 $t->app->mhf_backend->empty_table;
 $t->app->mhf_backend->drop_table;
 $path->remove_tree;
+unlink $sock->to_string if -S $sock->to_string;
+my $tmpdir = $sock->dirname;
+$tmpdir->remove_tree if -d $tmpdir && !$tmpdir->list->size;

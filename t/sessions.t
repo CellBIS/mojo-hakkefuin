@@ -94,3 +94,8 @@ $t_nomax->get_ok('/set')
   ->header_unlike('Set-Cookie', qr/Max-Age=/i, 'max-age not set when disabled');
 
 done_testing();
+
+# Clean up socket dir
+unlink $sock->to_string if -S $sock->to_string;
+my $tmpdir = $sock->dirname;
+$tmpdir->remove_tree if -d $tmpdir && !$tmpdir->list->size;

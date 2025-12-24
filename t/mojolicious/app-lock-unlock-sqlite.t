@@ -69,3 +69,8 @@ done_testing();
 # Clear
 $t->app->mhf_backend->drop_table;
 $migrations->remove_tree if -d $migrations;
+$migrations->dirname->remove_tree
+  if -d $migrations->dirname && !$migrations->dirname->list->size;
+unlink $sock->to_string if -S $sock->to_string;
+my $tmpdir = $sock->dirname;
+$tmpdir->remove_tree if -d $tmpdir && !$tmpdir->list->size;

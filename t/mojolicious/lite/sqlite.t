@@ -169,6 +169,5 @@ $t->get_ok('/stash')
 done_testing();
 
 # Clear
-# $t->app->mhf_backend->empty_table;
-# $t->app->mhf_backend->drop_table;
-# $path->remove_tree;
+$t->app->mhf_backend->drop_table if $t->app->can('mhf_backend');
+$path->remove_tree               if -d $path;

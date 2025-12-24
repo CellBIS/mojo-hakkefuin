@@ -220,3 +220,7 @@ done_testing();
 # Clear
 $t->app->mhf_backend->empty_table;
 $t->app->mhf_backend->drop_table;
+app->home->child('migrations')->remove_tree
+  if -d app->home->child('migrations');
+unlink $sock->to_string     if -S $sock->to_string;
+$sock->dirname->remove_tree if -d $sock->dirname && !$sock->dirname->list->size;
